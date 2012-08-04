@@ -1,0 +1,32 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2012
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Pdelvo.Minecraft.Proxy.Console", "Pdelvo.Minecraft.Proxy.Console\Pdelvo.Minecraft.Proxy.Console.csproj", "{8750BDD9-ECB2-4AE6-A845-EEA21DCAA32F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Pdelvo.Minecraft.Network", "..\externals\minecraftlib\Pdelvo.Minecraft.Network\Pdelvo.Minecraft.Network.csproj", "{8291168C-FF6F-47F8-B166-9B5D551E7BCA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Pdelvo.Minecraft.Protocol", "..\externals\minecraftlib\Pdelvo.Minecraft.Protocol\Pdelvo.Minecraft.Protocol.csproj", "{15181DED-BE43-47F9-A543-0B40F4F17A27}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{15181DED-BE43-47F9-A543-0B40F4F17A27}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{15181DED-BE43-47F9-A543-0B40F4F17A27}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{15181DED-BE43-47F9-A543-0B40F4F17A27}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{15181DED-BE43-47F9-A543-0B40F4F17A27}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8291168C-FF6F-47F8-B166-9B5D551E7BCA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8291168C-FF6F-47F8-B166-9B5D551E7BCA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8291168C-FF6F-47F8-B166-9B5D551E7BCA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8291168C-FF6F-47F8-B166-9B5D551E7BCA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8750BDD9-ECB2-4AE6-A845-EEA21DCAA32F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8750BDD9-ECB2-4AE6-A845-EEA21DCAA32F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8750BDD9-ECB2-4AE6-A845-EEA21DCAA32F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8750BDD9-ECB2-4AE6-A845-EEA21DCAA32F}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
