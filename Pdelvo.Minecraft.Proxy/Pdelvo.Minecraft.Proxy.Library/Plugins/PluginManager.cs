@@ -10,34 +10,44 @@ namespace Pdelvo.Minecraft.Proxy.Library.Plugins
     public class PluginManager
     {
         List<PluginBase> _plugins = new List<PluginBase>();
+
+        static PluginManager()
+        {
+            ResolveEventHandler handler = (s, e) =>
+            {
+                return Assembly.LoadFile(e.Name);
+            };
+            AppDomain.CurrentDomain.AssemblyResolve += handler;
+        }
+
         public PluginManager()
         {
         }
 
-        public void LoadPlugins()
+        public IEnumerable<PluginBase> LoadPlugins()
         {
             string pluginDirectory = "plugins/";
             Directory.CreateDirectory(pluginDirectory);
-            AppDomain.CurrentDomain.AssemblyResolve += (s, e) =>
-            {
-                return Assembly.LoadFile(e.Name);
-            };
             foreach (var item in Directory.EnumerateFiles(pluginDirectory, "*.dll"))
             {
+                List<PluginBase> plugins = new List<PluginBase>();
                 try
                 {
                     Assembly assembly = Assembly.Load(Path.GetFullPath(item));
                     Console.WriteLine(item);
-                    var plugins = assembly.GetCustomAttributes<PluginAssemblyAttribute>();
-                    var plugins2 = assembly.CustomAttributes.Where(a => a.AttributeType == typeof(PluginAssemblyAttribute));
-                    foreach (var plugin in plugins)
+                    var pluginAttributes = assembly.GetCustomAttributes<PluginAssemblyAttribute>();
+                    foreach (var plugin in pluginAttributes)
                     {
-                        var instance = Activator.CreateInstance(plugin.PluginType);
+                         plugins.Add((PluginBase)Activator.CreateInstance(plugin.PluginType));
                     }
                 }
                 catch (Exception ex)
                 {
-
+                    Console.WriteLine("Could not load assembly bag" + Environment.NewLine + ex);
+                }
+                foreach (var it in plugins)
+                {
+                    yield return it;
                 }
             }
         }
