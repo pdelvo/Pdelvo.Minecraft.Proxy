@@ -14,5 +14,7 @@ namespace Pdelvo.Minecraft.Proxy.Library
         bool Listening { get; }
         void Start();
         Task StopAsync();
+
+        IEnumerable<IProxyConnection> OpenConnections { get; }
     }
 }

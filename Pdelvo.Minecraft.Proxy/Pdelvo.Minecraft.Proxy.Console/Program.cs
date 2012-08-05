@@ -5,6 +5,7 @@ using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using Pdelvo.Minecraft.Proxy.Library;
+using Pdelvo.Minecraft.Proxy.Library.Plugins;
 
 namespace Pdelvo.Minecraft.Proxy.Console
 {
@@ -12,6 +13,7 @@ namespace Pdelvo.Minecraft.Proxy.Console
     {
         static void Main(string[] args)
         {
+            new PluginManager().LoadPlugins();
             IProxyServer server = new ProxyServer(new IPEndPoint(IPAddress.Any, 25565));
             server.Start();
             System.Console.ReadKey();

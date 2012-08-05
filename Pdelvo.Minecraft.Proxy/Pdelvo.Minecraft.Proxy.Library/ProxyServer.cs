@@ -7,6 +7,7 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Pdelvo.Async.Extensions;
 
 namespace Pdelvo.Minecraft.Proxy.Library
 {
@@ -16,9 +17,8 @@ namespace Pdelvo.Minecraft.Proxy.Library
         volatile int _connectedUsers;
         bool _listening;
         bool _acceptingNewClients;
-        SynchronizedCollection<IProxyConnection> _openConnection;
+        SynchronizedCollection<ProxyConnection> _openConnection;
         Socket _listeningSocket;
-        CancellationTokenSource _shutdownTokenSource = new CancellationTokenSource();
 
         public ProxyServer(IPEndPoint endPoint)
         {
@@ -50,10 +50,10 @@ namespace Pdelvo.Minecraft.Proxy.Library
 
             _listeningSocket.Listen(10);
 
-            ReceiveClientsAsync(_shutdownTokenSource.Token);
+            ReceiveClientsAsync();
         }
 
-        private async void ReceiveClientsAsync(CancellationToken cancellationToken)
+        private async void ReceiveClientsAsync()
         {
             while (true)
             {
@@ -69,6 +69,14 @@ namespace Pdelvo.Minecraft.Proxy.Library
                 {
 
                 }
+            }
+        }
+
+        public IEnumerable<IProxyConnection> OpenConnections
+        {
+            get
+            {
+                return _openConnection;
             }
         }
 
