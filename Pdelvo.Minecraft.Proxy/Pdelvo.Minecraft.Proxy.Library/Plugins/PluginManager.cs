@@ -22,6 +22,9 @@ namespace Pdelvo.Minecraft.Proxy.Library.Plugins
 
         public PluginManager()
         {
+            TriggerPlugin = new TriggerPlugin(_plugins);
+
+            _plugins.AddRange(LoadPlugins());
         }
 
         public IEnumerable<PluginBase> LoadPlugins()
@@ -51,5 +54,7 @@ namespace Pdelvo.Minecraft.Proxy.Library.Plugins
                 }
             }
         }
+
+        internal TriggerPlugin TriggerPlugin { get; private set; }
     }
 }

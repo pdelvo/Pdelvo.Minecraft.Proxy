@@ -13,7 +13,6 @@ namespace Pdelvo.Minecraft.Proxy.Console
     {
         static void Main(string[] args)
         {
-            new PluginManager().LoadPlugins();
             IProxyServer server = new ProxyServer(new IPEndPoint(IPAddress.Any, 25565));
             server.Start();
             System.Console.ReadKey();

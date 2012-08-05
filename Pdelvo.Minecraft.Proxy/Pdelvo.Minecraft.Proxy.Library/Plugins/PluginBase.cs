@@ -14,7 +14,7 @@ namespace Pdelvo.Minecraft.Proxy.Library.Plugins
         public abstract string Author { get; }
 
 
-        public virtual bool AllowJoining(IPAddress address)
+        public virtual bool? AllowJoining(IPAddress address)
         {
             return true;
         }

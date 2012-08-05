@@ -28,5 +28,10 @@ namespace TestPlugin
         {
             Console.WriteLine("Hallo, Welt! 2");
         }
+
+        public override bool? AllowJoining(System.Net.IPAddress address)
+        {
+            return false;
+        }
     }
 }

@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Pdelvo.Async.Extensions;
+using Pdelvo.Minecraft.Proxy.Library.Plugins;
 
 namespace Pdelvo.Minecraft.Proxy.Library
 {
@@ -19,10 +20,13 @@ namespace Pdelvo.Minecraft.Proxy.Library
         bool _acceptingNewClients;
         SynchronizedCollection<ProxyConnection> _openConnection;
         Socket _listeningSocket;
+        PluginManager _pluginManager;
 
         public ProxyServer(IPEndPoint endPoint)
         {
             _localEndPoint = endPoint;
+            _pluginManager = new PluginManager();
+            _pluginManager.LoadPlugins();
         }
 
         public IPEndPoint LocalEndPoint
@@ -60,6 +64,17 @@ namespace Pdelvo.Minecraft.Proxy.Library
                 try
                 {
                     var remote = await _listeningSocket.AcceptTaskAsync();
+
+                    IPAddress address = ((IPEndPoint)remote.RemoteEndPoint).Address;
+
+                    if (!(PluginManager.TriggerPlugin.AllowJoining(address) ?? false))
+                    {
+                        remote.Close();
+                        Console.WriteLine("Denied access from " + address);
+                        continue;
+                    }
+                    //Connection accepted
+
                 }
                 catch (TaskCanceledException)
                 {
@@ -93,6 +108,11 @@ namespace Pdelvo.Minecraft.Proxy.Library
         public virtual void Dispose()
         {
 
+        }
+
+        public PluginManager PluginManager
+        {
+            get { return _pluginManager; }
         }
     }
 }

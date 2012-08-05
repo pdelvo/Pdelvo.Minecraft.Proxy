@@ -45,6 +45,7 @@
     <Compile Include="Plugins\PluginAssemblyAttribute.cs" />
     <Compile Include="Plugins\PluginBase.cs" />
     <Compile Include="Plugins\PluginManager.cs" />
+    <Compile Include="Plugins\TriggerPlugin.cs" />
     <Compile Include="ProxyConnection.cs" />
     <Compile Include="ProxyServer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
