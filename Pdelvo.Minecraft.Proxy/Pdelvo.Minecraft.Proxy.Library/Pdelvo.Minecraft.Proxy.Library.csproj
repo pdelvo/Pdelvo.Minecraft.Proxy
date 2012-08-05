@@ -40,13 +40,17 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="IProxyConnection.cs" />
+    <Compile Include="Connection\ConnectionExtensions.cs" />
+    <Compile Include="Connection\IProxyEndPoint.cs" />
+    <Compile Include="Connection\IProxyConnection.cs" />
+    <Compile Include="Connection\PacketReceivedEventArgs.cs" />
+    <Compile Include="Connection\ProxyEndPoint.cs" />
     <Compile Include="IProxyServer.cs" />
     <Compile Include="Plugins\PluginAssemblyAttribute.cs" />
     <Compile Include="Plugins\PluginBase.cs" />
     <Compile Include="Plugins\PluginManager.cs" />
     <Compile Include="Plugins\TriggerPlugin.cs" />
-    <Compile Include="ProxyConnection.cs" />
+    <Compile Include="Connection\ProxyConnection.cs" />
     <Compile Include="ProxyServer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
@@ -54,6 +58,14 @@
     <ProjectReference Include="..\..\externals\asynclib\Pdelvo.Async.Extensions.csproj">
       <Project>{835ae408-e04f-4e51-82c2-74f899c6dda0}</Project>
       <Name>Pdelvo.Async.Extensions</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\externals\minecraftlib\Pdelvo.Minecraft.Network\Pdelvo.Minecraft.Network.csproj">
+      <Project>{8291168c-ff6f-47f8-b166-9b5d551e7bca}</Project>
+      <Name>Pdelvo.Minecraft.Network</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\externals\minecraftlib\Pdelvo.Minecraft.Protocol\Pdelvo.Minecraft.Protocol.csproj">
+      <Project>{15181ded-be43-47f9-a543-0b40f4f17a27}</Project>
+      <Name>Pdelvo.Minecraft.Protocol</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

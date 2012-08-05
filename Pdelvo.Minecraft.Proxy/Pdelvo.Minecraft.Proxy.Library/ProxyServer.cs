@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Pdelvo.Async.Extensions;
+using Pdelvo.Minecraft.Proxy.Library.Connection;
 using Pdelvo.Minecraft.Proxy.Library.Plugins;
 
 namespace Pdelvo.Minecraft.Proxy.Library
@@ -75,6 +76,12 @@ namespace Pdelvo.Minecraft.Proxy.Library
                     }
                     //Connection accepted
 
+                    ProxyConnection proxyConnection = new ProxyConnection(remote, this);
+
+                    _openConnection.Add(proxyConnection);
+
+
+                    proxyConnection.HandleClient();
                 }
                 catch (TaskCanceledException)
                 {
