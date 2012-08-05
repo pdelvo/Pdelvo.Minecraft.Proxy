@@ -47,6 +47,12 @@
   <ItemGroup>
     <None Include="App.config" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Pdelvo.Minecraft.Proxy.Library\Pdelvo.Minecraft.Proxy.Library.csproj">
+      <Project>{114f9078-d8d6-4515-acde-25a5988475c7}</Project>
+      <Name>Pdelvo.Minecraft.Proxy.Library</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

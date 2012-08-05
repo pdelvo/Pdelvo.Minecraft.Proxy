@@ -1,3 +1,6 @@
 [submodule "externals/minecraftlib"]
 	path = externals/minecraftlib
 	url = git://github.com/pdelvo/Pdelvo.Minecraft.git
+[submodule "externals/asynclib"]
+	path = externals/asynclib
+	url = git://github.com/pdelvo/Pdelvo.Async.Extensions.git

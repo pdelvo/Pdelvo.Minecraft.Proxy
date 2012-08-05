@@ -6,8 +6,7 @@ using System.Threading.Tasks;
 
 namespace Pdelvo.Minecraft.Proxy.Library
 {
-    public interface IProxyConnection : IDisposable
+    class ProxyConnection
     {
-        Task CloseAsync();
     }
 }
