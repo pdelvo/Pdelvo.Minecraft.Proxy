@@ -33,9 +33,11 @@ namespace Pdelvo.Minecraft.Proxy.Library.Connection
             _random = new Random();
         }
 
-        public Task CloseAsync()
+        public async Task CloseAsync()
         {
-            return Task.FromResult(0);
+            await KickUserAsync("Proxy connection shutdown");
+            if (_serverEndPoint != null)
+                _serverEndPoint.Close();
         }
 
         public void Dispose()
@@ -58,11 +60,8 @@ namespace Pdelvo.Minecraft.Proxy.Library.Connection
 
                 if (listPing != null) // send motd
                 {
-                    var response = ProtocolHelper.BuildMotDPacket(_server.MotD, _server.ConnectedUsers, _server.MaxUsers);
-
-                    await ClientEndPoint.SendPacketAsync(response);
-                    _networkSocket.Close();
-                    _server.RemoveConnection(this);
+                    var response = ProtocolHelper.BuildMotDString(_server.MotD, _server.ConnectedUsers, _server.MaxUsers);
+                    await KickUserAsync(response);
                     return;
                 }
 
@@ -108,10 +107,8 @@ namespace Pdelvo.Minecraft.Proxy.Library.Connection
                     if (verification.Length != randomBuffer.Length
                         || !verification.Zip(randomBuffer, (a, b) => a == b).All(a => a))
                     {
-                        await ClientEndPoint.SendPacketAsync(new DisconnectPacket { Reason = "Verify token failure" });
+                        await KickUserAsync("Verify token failure");
                         _logger.Error("Failed to login a Client, Verify token failure");
-                        _networkSocket.Close();
-                        _server.RemoveConnection(this);
                         return;
                     }
 
@@ -124,20 +121,38 @@ namespace Pdelvo.Minecraft.Proxy.Library.Connection
 
                     if (!(p is RespawnRequestPacket))
                     {
-                        await ClientEndPoint.SendPacketAsync(new DisconnectPacket { Reason = "Protocol failure" });
+                        await KickUserAsync("Protocol failure");
                         _logger.Error("Failed to login a Client, Protocol failure");
-                        _networkSocket.Close();
-                        _server.RemoveConnection(this);
                         return;
                     }
 
 
                     _logger.InfoFormat("{0} is connected", Username);
+
+                    _server.PromoteConnection(this);
+
+                    await KickUserAsync("Not yet implemented");
                 }
             }
             catch (Exception ex)
             {
+                KickUserAsync("Failed to login");
                 _logger.Error("Failed to login a Client", ex);
+
+            }
+        }
+
+        private async Task KickUserAsync(string message)
+        {
+            try
+            {
+                await ClientEndPoint.SendPacketAsync(new DisconnectPacket { Reason = message });
+                ClientEndPoint.Close();
+            }
+            catch (Exception) { }
+            finally
+            {
+                _server.RemoveConnection(this);
             }
         }
 

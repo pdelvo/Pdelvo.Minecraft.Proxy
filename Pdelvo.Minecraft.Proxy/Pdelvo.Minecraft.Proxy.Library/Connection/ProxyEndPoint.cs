@@ -50,6 +50,13 @@ namespace Pdelvo.Minecraft.Proxy.Library.Connection
         public void StartListening()
         {
             RemoteInterface.PacketReceived += OnPacketReceived;
+            RemoteInterface.Aborted += RemoteInterface_Aborted;
+        }
+
+        void RemoteInterface_Aborted(object sender, RemoteInterfaceAbortedEventArgs e)
+        {
+            if (ConnectionLost != null)
+                ConnectionLost(this, EventArgs.Empty);
         }
 
         protected virtual void OnPacketReceived(object sender, PacketEventArgs e)
@@ -80,6 +87,12 @@ namespace Pdelvo.Minecraft.Proxy.Library.Connection
         public void EnableAes()
         {
             RemoteInterface.SwitchToAesMode(ConnectionKey);
+        }
+
+
+        public void Close()
+        {
+            RemoteInterface.Shutdown();
         }
     }
 }

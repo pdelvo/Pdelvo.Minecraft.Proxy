@@ -13,12 +13,13 @@ namespace Pdelvo.Minecraft.Proxy.Console
     {
         static void Main(string[] args)
         {
+            System.Console.WriteLine("Press q to quit");
             log4net.Config.BasicConfigurator.Configure();
             IProxyServer server = new ProxyServer(new IPEndPoint(IPAddress.Any, 25565));
             server.Start();
-            System.Console.ReadKey();
+
+            while (System.Console.ReadKey(true).Key != ConsoleKey.Q) { }
             server.StopAsync();
-            System.Console.ReadKey();
         }
     }
 }

@@ -19,10 +19,10 @@ namespace Pdelvo.Minecraft.Proxy.Library
     public class ProxyServer : IProxyServer
     {
         IPEndPoint _localEndPoint;
-        volatile int _connectedUsers;
         bool _listening;
         bool _acceptingNewClients;
         SynchronizedCollection<ProxyConnection> _openConnection;
+        SynchronizedCollection<ProxyConnection> _connectedUsers;
         Socket _listeningSocket;
         PluginManager _pluginManager;
         ILog _logger;
@@ -38,6 +38,7 @@ namespace Pdelvo.Minecraft.Proxy.Library
             _pluginManager = new PluginManager();
             _pluginManager.LoadPlugins();
             _openConnection = new SynchronizedCollection<ProxyConnection>();
+            _connectedUsers = new SynchronizedCollection<ProxyConnection>();
         }
 
         public IPEndPoint LocalEndPoint
@@ -47,7 +48,7 @@ namespace Pdelvo.Minecraft.Proxy.Library
 
         public int ConnectedUsers
         {
-            get { return _connectedUsers; }
+            get { return _connectedUsers.Count; }
         }
 
         public int MaxUsers
@@ -68,6 +69,8 @@ namespace Pdelvo.Minecraft.Proxy.Library
         public void Start()
         {
             if (_listening) throw new InvalidOperationException("Proxy server is running");
+
+            _listening = true;
 
             RSACryptoServiceProvider rsa;
 
@@ -91,6 +94,7 @@ namespace Pdelvo.Minecraft.Proxy.Library
 
         private async void ReceiveClientsAsync()
         {
+            _acceptingNewClients = true;
             while (true)
             {
                 try
@@ -116,9 +120,10 @@ namespace Pdelvo.Minecraft.Proxy.Library
                 }
                 catch (TaskCanceledException)
                 {
+                    _acceptingNewClients = false;
                     return;
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
 
                 }
@@ -136,6 +141,7 @@ namespace Pdelvo.Minecraft.Proxy.Library
         public async Task StopAsync()
         {
             if (!_listening) return;
+            _listening = false;
             _acceptingNewClients = false;
             await Task.WhenAll(_openConnection.Select(a => a.CloseAsync()));
 
@@ -145,7 +151,7 @@ namespace Pdelvo.Minecraft.Proxy.Library
 
         public virtual void Dispose()
         {
-
+            StopAsync().Wait();
         }
 
         public PluginManager PluginManager
@@ -156,6 +162,13 @@ namespace Pdelvo.Minecraft.Proxy.Library
         internal void RemoveConnection(ProxyConnection proxyConnection)
         {
             _openConnection.Remove(proxyConnection);
+            if (_connectedUsers.Contains(proxyConnection))
+                _connectedUsers.Remove(proxyConnection);
+        }
+
+        internal void PromoteConnection(ProxyConnection proxyConnection)
+        {
+            _connectedUsers.Add(proxyConnection);
         }
     }
 }
