@@ -10,6 +10,7 @@ using Pdelvo.Minecraft.Protocol;
 using Pdelvo.Minecraft.Protocol.Helper;
 using Pdelvo.Minecraft.Protocol.Packets;
 using Pdelvo.Minecraft.Proxy.Library.Plugins.Events;
+using Pdelvo.Async.Extensions;
 
 namespace Pdelvo.Minecraft.Proxy.Library.Connection
 {
@@ -131,6 +132,8 @@ namespace Pdelvo.Minecraft.Proxy.Library.Connection
 
                     _server.PromoteConnection(this);
 
+                    await InitializeServerAsync();
+
                     await KickUserAsync("Not yet implemented");
                 }
             }
@@ -139,6 +142,23 @@ namespace Pdelvo.Minecraft.Proxy.Library.Connection
                 KickUserAsync("Failed to login");
                 _logger.Error("Failed to login a Client", ex);
 
+            }
+        }
+
+        private async Task InitializeServerAsync()
+        {
+            try
+            {
+                var serverEndPoint = _server.GetServerEndPoint(this);
+
+                var socket = new Socket(serverEndPoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+
+                await socket.ConnectTaskAsync(serverEndPoint);
+            }
+            catch (Exception ex)
+            {
+                KickUserAsync("Could not connect to remote server");
+                _logger.Error("Could not connect to remote server", ex);
             }
         }
 

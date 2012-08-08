@@ -23,7 +23,7 @@ namespace Pdelvo.Minecraft.Proxy.Library
         bool Listening { get; }
         void Start();
         Task StopAsync();
-
+        IPEndPoint GetServerEndPoint(IProxyConnection proxyConnection);
         IEnumerable<IProxyConnection> OpenConnections { get; }
     }
 }

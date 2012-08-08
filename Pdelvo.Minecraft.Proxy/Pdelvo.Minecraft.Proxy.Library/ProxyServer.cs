@@ -32,7 +32,7 @@ namespace Pdelvo.Minecraft.Proxy.Library
 
         public ProxyServer(IPEndPoint endPoint)
         {
-            IsOnlineModeEnabled = true;
+            IsOnlineModeEnabled = false;
             _logger = LogManager.GetLogger("Proxy Server");
             _localEndPoint = endPoint;
             _pluginManager = new PluginManager();
@@ -169,6 +169,12 @@ namespace Pdelvo.Minecraft.Proxy.Library
         internal void PromoteConnection(ProxyConnection proxyConnection)
         {
             _connectedUsers.Add(proxyConnection);
+        }
+
+
+        public IPEndPoint GetServerEndPoint(IProxyConnection proxyConnection)
+        {
+            return new IPEndPoint(IPAddress.Loopback, 25566);
         }
     }
 }
