@@ -14,8 +14,9 @@ namespace Pdelvo.Minecraft.Proxy.Library.Connection
         event EventHandler<PacketReceivedEventArgs> PacketReceived;
         bool IsConnected { get; }
         event EventHandler ConnectionLost;
-        int ProtocolVersion { get; }
+        int ProtocolVersion { get; set; }
         void StartListening();
         Task StopListeningAsync();
+        void AddCustomPacket<type>(byte id) where type : Packet, new();
     }
 }

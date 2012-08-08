@@ -5,11 +5,14 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using log4net;
 namespace Pdelvo.Minecraft.Proxy.Library.Plugins
 {
     public class PluginManager
     {
         List<PluginBase> _plugins = new List<PluginBase>();
+
+        ILog _logger;
 
         static PluginManager()
         {
@@ -22,6 +25,7 @@ namespace Pdelvo.Minecraft.Proxy.Library.Plugins
 
         public PluginManager()
         {
+            _logger = LogManager.GetLogger("Plugin Manager");
             TriggerPlugin = new TriggerPlugin(_plugins);
 
             _plugins.AddRange(LoadPlugins());
@@ -37,7 +41,6 @@ namespace Pdelvo.Minecraft.Proxy.Library.Plugins
                 try
                 {
                     Assembly assembly = Assembly.Load(Path.GetFullPath(item));
-                    Console.WriteLine(item);
                     var pluginAttributes = assembly.GetCustomAttributes<PluginAssemblyAttribute>();
                     foreach (var plugin in pluginAttributes)
                     {
@@ -46,7 +49,7 @@ namespace Pdelvo.Minecraft.Proxy.Library.Plugins
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine("Could not load assembly bag" + Environment.NewLine + ex);
+                    _logger.Error("Could not load plugin assembly", ex);
                 }
                 foreach (var it in plugins)
                 {

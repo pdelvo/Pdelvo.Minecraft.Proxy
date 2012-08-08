@@ -10,6 +10,10 @@ namespace Pdelvo.Minecraft.Proxy.Library.Connection
     {
         IProxyEndPoint ServerEndPoint { get; }
         IProxyEndPoint ClientEndPoint { get; }
+
+        string Username { get; }
+        string Host { get; }
+
         Task CloseAsync();
     }
 }

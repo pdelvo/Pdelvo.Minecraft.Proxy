@@ -14,6 +14,8 @@ namespace Pdelvo.Minecraft.Proxy.Library
         PluginManager PluginManager { get;}
         IPEndPoint LocalEndPoint { get; }
         int ConnectedUsers { get; }
+        int MaxUsers { get; }
+        string MotD { get; }
         bool Listening { get; }
         void Start();
         Task StopAsync();

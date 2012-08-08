@@ -18,7 +18,17 @@ namespace Pdelvo.Minecraft.Proxy.Library.Connection
             ProtocolVersion = protocolVersion;
         }
 
-        public int ProtocolVersion { get; protected set; }
+        public int ProtocolVersion
+        {
+            get
+            {
+                return RemoteInterface.EndPoint.Version;
+            }
+            set
+            {
+                RemoteInterface.EndPoint.Version = value;
+            }
+        }
 
         public void SendPacket(Packet packet)
         {
@@ -52,6 +62,11 @@ namespace Pdelvo.Minecraft.Proxy.Library.Connection
         {
             RemoteInterface.Shutdown();
             return Task.FromResult(0);
+        }
+
+        public void AddCustomPacket<type>(byte id) where type : Packet, new()
+        {
+            RemoteInterface.RegisterPacket<type>(id);
         }
     }
 }

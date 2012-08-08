@@ -31,7 +31,7 @@ namespace TestPlugin
 
         public override bool? AllowJoining(System.Net.IPAddress address)
         {
-            return false;
+            return true;
         }
     }
 }

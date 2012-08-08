@@ -4,6 +4,7 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+using Pdelvo.Minecraft.Proxy.Library.Connection;
 
 namespace Pdelvo.Minecraft.Proxy.Library.Plugins
 {
@@ -18,5 +19,7 @@ namespace Pdelvo.Minecraft.Proxy.Library.Plugins
         {
             return true;
         }
+
+        public virtual void OnPlayerConnected(IProxyConnection connection) { }
     }
 }
