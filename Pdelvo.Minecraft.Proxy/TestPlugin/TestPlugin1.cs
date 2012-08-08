@@ -26,12 +26,16 @@ namespace TestPlugin
 
         public TestPlugin1()
         {
-            Console.WriteLine("Hallo, Welt! 2");
         }
 
         public override bool? AllowJoining(System.Net.IPAddress address)
         {
             return true;
+        }
+
+        public override void OnPlayerConnected(Pdelvo.Minecraft.Proxy.Library.Plugins.Events.PlayerConnectedEventArgs connection)
+        {
+            //connection.SetCanceled("Test message");
         }
     }
 }

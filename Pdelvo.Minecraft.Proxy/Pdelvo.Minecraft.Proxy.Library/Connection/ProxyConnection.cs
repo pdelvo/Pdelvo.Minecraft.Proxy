@@ -4,6 +4,8 @@ using System.Linq;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
+using log4net;
+using Pdelvo.Minecraft.Network;
 using Pdelvo.Minecraft.Protocol;
 using Pdelvo.Minecraft.Protocol.Helper;
 using Pdelvo.Minecraft.Protocol.Packets;
@@ -17,14 +19,18 @@ namespace Pdelvo.Minecraft.Proxy.Library.Connection
         ProxyServer _server;
         ProxyEndPoint _serverEndPoint;
         ProxyEndPoint _clientEndPoint;
+        ILog _logger;
+        Random _random;
 
         public string Username { get; protected set; }
         public string Host { get; protected set; }
 
         public ProxyConnection(Socket networkSocket, ProxyServer server)
         {
+            _logger = LogManager.GetLogger("Proxy Connection");
             _networkSocket = networkSocket;
             _server = server;
+            _random = new Random();
         }
 
         public Task CloseAsync()
@@ -56,7 +62,7 @@ namespace Pdelvo.Minecraft.Proxy.Library.Connection
 
                     await ClientEndPoint.SendPacketAsync(response);
                     _networkSocket.Close();
-                    _server.RemoteConnection(this);
+                    _server.RemoveConnection(this);
                     return;
                 }
 
@@ -67,12 +73,71 @@ namespace Pdelvo.Minecraft.Proxy.Library.Connection
                     ClientEndPoint.ProtocolVersion = handshakeRequest.ProtocolVersion;
                     var args = new PlayerConnectedEventArgs(this);
 
+                    _server.PluginManager.TriggerPlugin.OnPlayerConnected(args);
 
+                    if (args.Canceled)
+                    {
+                        await ClientEndPoint.SendPacketAsync(new DisconnectPacket { Reason = args.CancelMessage });
+                        _networkSocket.Close();
+                        _server.RemoveConnection(this);
+                        return;
+                    }
+                    _logger.InfoFormat("{0} is connecting...", Username);
+
+                    bool onlineMode = _server.IsOnlineModeEnabled;
+                    string serverId = onlineMode ? Session.GetSessionHash() : "-";
+
+                    byte[] randomBuffer = new byte[4];
+                    _random.NextBytes(randomBuffer);
+                    await ClientEndPoint.SendPacketAsync(new EncryptionKeyRequest
+                    {
+                        ServerId = serverId,
+                        PublicKey = AsnKeyBuilder.PublicKeyToX509(_server.RSAKeyPair).GetBytes(),
+                        VerifyToken = randomBuffer
+                    });
+                    do
+                    {
+                        packet = await ClientEndPoint.ReceivePacketAsync();
+                    } while (packet is KeepAlive);
+
+                    var encryptionKeyResponse = (EncryptionKeyResponse)packet;
+                    var verification = Pdelvo.Minecraft.Network.ProtocolSecurity.RSADecrypt(
+                        encryptionKeyResponse.VerifyToken.ToArray(), _server.RSACryptoServiceProvider, true);
+                    var sharedKey = Pdelvo.Minecraft.Network.ProtocolSecurity.RSADecrypt(
+                        encryptionKeyResponse.SharedKey.ToArray(), _server.RSACryptoServiceProvider, true);
+                    if (verification.Length != randomBuffer.Length
+                        || !verification.Zip(randomBuffer, (a, b) => a == b).All(a => a))
+                    {
+                        await ClientEndPoint.SendPacketAsync(new DisconnectPacket { Reason = "Verify token failure" });
+                        _logger.Error("Failed to login a Client, Verify token failure");
+                        _networkSocket.Close();
+                        _server.RemoveConnection(this);
+                        return;
+                    }
+
+                    await ClientEndPoint.SendPacketAsync(new EncryptionKeyResponse { SharedKey = new byte[0] });
+
+                    ClientEndPoint.ConnectionKey = sharedKey;
+                    ClientEndPoint.EnableAes();//now everything is encrypted
+
+                    var p = await ClientEndPoint.ReceivePacketAsync();
+
+                    if (!(p is RespawnRequestPacket))
+                    {
+                        await ClientEndPoint.SendPacketAsync(new DisconnectPacket { Reason = "Protocol failure" });
+                        _logger.Error("Failed to login a Client, Protocol failure");
+                        _networkSocket.Close();
+                        _server.RemoveConnection(this);
+                        return;
+                    }
+
+
+                    _logger.InfoFormat("{0} is connected", Username);
                 }
             }
             catch (Exception ex)
             {
-
+                _logger.Error("Failed to login a Client", ex);
             }
         }
 

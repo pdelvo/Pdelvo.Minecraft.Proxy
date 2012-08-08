@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using Pdelvo.Minecraft.Proxy.Library.Connection;
@@ -14,6 +15,9 @@ namespace Pdelvo.Minecraft.Proxy.Library
         PluginManager PluginManager { get;}
         IPEndPoint LocalEndPoint { get; }
         int ConnectedUsers { get; }
+        bool IsOnlineModeEnabled { get; }
+        RSAParameters RSAKeyPair { get; }
+        RSACryptoServiceProvider RSACryptoServiceProvider { get; }
         int MaxUsers { get; }
         string MotD { get; }
         bool Listening { get; }

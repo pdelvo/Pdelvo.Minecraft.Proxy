@@ -58,6 +58,7 @@
     <Compile Include="Connection\ProxyConnection.cs" />
     <Compile Include="ProxyServer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Session.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\externals\asynclib\Pdelvo.Async.Extensions.csproj">

@@ -68,5 +68,18 @@ namespace Pdelvo.Minecraft.Proxy.Library.Connection
         {
             RemoteInterface.RegisterPacket<type>(id);
         }
+
+
+        public Task<Packet> ReceivePacketAsync()
+        {
+            return RemoteInterface.ReadPacketAsync();
+        }
+
+        public byte[] ConnectionKey { get; set; }
+
+        public void EnableAes()
+        {
+            RemoteInterface.SwitchToAesMode(ConnectionKey);
+        }
     }
 }

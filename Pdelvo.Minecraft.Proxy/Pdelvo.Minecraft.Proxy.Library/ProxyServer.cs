@@ -4,11 +4,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using log4net;
 using Pdelvo.Async.Extensions;
+using Pdelvo.Minecraft.Network;
 using Pdelvo.Minecraft.Proxy.Library.Connection;
 using Pdelvo.Minecraft.Proxy.Library.Plugins;
 
@@ -24,9 +26,13 @@ namespace Pdelvo.Minecraft.Proxy.Library
         Socket _listeningSocket;
         PluginManager _pluginManager;
         ILog _logger;
+        public bool IsOnlineModeEnabled { get; set; }
+        public RSAParameters RSAKeyPair { get; private set; }
+        public RSACryptoServiceProvider RSACryptoServiceProvider { get; private set; }
 
         public ProxyServer(IPEndPoint endPoint)
         {
+            IsOnlineModeEnabled = true;
             _logger = LogManager.GetLogger("Proxy Server");
             _localEndPoint = endPoint;
             _pluginManager = new PluginManager();
@@ -63,6 +69,15 @@ namespace Pdelvo.Minecraft.Proxy.Library
         {
             if (_listening) throw new InvalidOperationException("Proxy server is running");
 
+            RSACryptoServiceProvider rsa;
+
+            RSAKeyPair = ProtocolSecurity.GenerateRSAKeyPair(out rsa);
+
+            RSACryptoServiceProvider = rsa;
+
+            _logger.Info("RSA Key pair generated");
+
+
             _listeningSocket = new Socket(LocalEndPoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
 
             _listeningSocket.Bind(LocalEndPoint);
@@ -87,7 +102,7 @@ namespace Pdelvo.Minecraft.Proxy.Library
                     if (!(PluginManager.TriggerPlugin.AllowJoining(address) ?? false))
                     {
                         remote.Close();
-                        Console.WriteLine("Denied access from " + address);
+                        _logger.Warn("Denied access from " + address);
                         continue;
                     }
                     //Connection accepted
@@ -138,7 +153,7 @@ namespace Pdelvo.Minecraft.Proxy.Library
             get { return _pluginManager; }
         }
 
-        internal void RemoteConnection(ProxyConnection proxyConnection)
+        internal void RemoveConnection(ProxyConnection proxyConnection)
         {
             _openConnection.Remove(proxyConnection);
         }

@@ -9,8 +9,11 @@ namespace Pdelvo.Minecraft.Proxy.Library.Connection
 {
     public interface IProxyEndPoint
     {
+        byte[] ConnectionKey { get; set; }
+        void EnableAes();
         void SendPacket(Packet packet);
         Task SendPacketAsync(Packet packet);
+        Task<Packet> ReceivePacketAsync();
         event EventHandler<PacketReceivedEventArgs> PacketReceived;
         bool IsConnected { get; }
         event EventHandler ConnectionLost;

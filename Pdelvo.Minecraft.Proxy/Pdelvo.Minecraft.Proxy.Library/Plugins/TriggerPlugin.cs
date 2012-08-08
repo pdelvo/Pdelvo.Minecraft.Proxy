@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using log4net;
+using Pdelvo.Minecraft.Proxy.Library.Plugins.Events;
 
 namespace Pdelvo.Minecraft.Proxy.Library.Plugins
 {
@@ -43,7 +44,7 @@ namespace Pdelvo.Minecraft.Proxy.Library.Plugins
             return _triggerPlugins.Select(a => a.AllowJoining(address)).SkipWhile(a => a == null).FirstOrDefault() ?? true;
         }
 
-        public override void OnPlayerConnected(Connection.IProxyConnection connection)
+        public override void OnPlayerConnected(PlayerConnectedEventArgs connection)
         {
             foreach (var item in _triggerPlugins)
             {
