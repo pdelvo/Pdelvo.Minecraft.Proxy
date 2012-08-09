@@ -51,6 +51,8 @@ namespace Pdelvo.Minecraft.Proxy.Library.Connection
         {
             RemoteInterface.PacketReceived += OnPacketReceived;
             RemoteInterface.Aborted += RemoteInterface_Aborted;
+
+            var r = RemoteInterface.Run();
         }
 
         void RemoteInterface_Aborted(object sender, RemoteInterfaceAbortedEventArgs e)
@@ -63,6 +65,11 @@ namespace Pdelvo.Minecraft.Proxy.Library.Connection
         {
             if (PacketReceived != null)
                 PacketReceived(this, new PacketReceivedEventArgs(e.Packet));
+        }
+
+        public void SendPacketQueued(Packet packet)
+        {
+            RemoteInterface.SendPacketQueued(packet);
         }
 
         public virtual Task StopListeningAsync()

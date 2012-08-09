@@ -21,7 +21,7 @@ namespace Pdelvo.Minecraft.Proxy.Library.Connection
         void StartListening();
         Task StopListeningAsync();
         void AddCustomPacket<type>(byte id) where type : Packet, new();
-
+        void SendPacketQueued(Packet packet);
         void Close();
     }
 }

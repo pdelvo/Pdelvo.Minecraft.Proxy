@@ -53,6 +53,7 @@ namespace Pdelvo.Minecraft.Proxy.Library.Connection
                 var clientRemoteInterface = ClientRemoteInterface.Create(new NetworkStream(_networkSocket), 39);
                 _clientEndPoint = new ProxyEndPoint(clientRemoteInterface, clientRemoteInterface.EndPoint.Version);
 
+
                 var packet = await clientRemoteInterface.ReadPacketAsync();
 
                 var listPing = packet as PlayerListPing;
@@ -134,7 +135,7 @@ namespace Pdelvo.Minecraft.Proxy.Library.Connection
 
                     await InitializeServerAsync();
 
-                    await KickUserAsync("Not yet implemented");
+                    //await KickUserAsync("Not yet implemented");
                 }
             }
             catch (Exception ex)
@@ -151,7 +152,10 @@ namespace Pdelvo.Minecraft.Proxy.Library.Connection
             {
                 var serverEndPoint = _server.GetServerEndPoint(this);
 
-                var socket = new Socket(serverEndPoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+                var socket = new Socket(serverEndPoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp)
+                {
+                    ReceiveBufferSize = 1024*1024
+                };
 
                 await socket.ConnectTaskAsync(serverEndPoint);
 
@@ -185,14 +189,30 @@ namespace Pdelvo.Minecraft.Proxy.Library.Connection
                 await ServerEndPoint.SendPacketAsync(new RespawnRequestPacket());
 
                 var response = await ServerEndPoint.ReceivePacketAsync();
-
+                
                 await ClientEndPoint.SendPacketAsync(response);
+
+                ClientEndPoint.PacketReceived += ClientPacketReceived;
+                ServerEndPoint.PacketReceived += ServerPacketReceived;
+
+                ClientEndPoint.StartListening();
+                ServerEndPoint.StartListening();
             }
             catch (Exception ex)
             {
                 KickUserAsync("Could not connect to remote server");
                 _logger.Error("Could not connect to remote server", ex);
             }
+        }
+
+        void ClientPacketReceived(object sender, PacketReceivedEventArgs args)
+        {
+            ServerEndPoint.SendPacketQueued(args.Packet);
+        }
+
+        void ServerPacketReceived(object sender, PacketReceivedEventArgs args)
+        {
+           ClientEndPoint.SendPacketQueued(args.Packet);
         }
 
         private async Task KickUserAsync(string message)
