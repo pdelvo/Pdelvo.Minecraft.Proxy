@@ -154,6 +154,39 @@ namespace Pdelvo.Minecraft.Proxy.Library.Connection
                 var socket = new Socket(serverEndPoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
 
                 await socket.ConnectTaskAsync(serverEndPoint);
+
+                _serverEndPoint = new ProxyEndPoint(ServerRemoteInterface.Create(new NetworkStream(socket), ClientEndPoint.ProtocolVersion), ClientEndPoint.ProtocolVersion);
+
+                var handshakeRequest = new HandshakeRequest
+                {
+                    UserName = Username,
+                    Host = Host,
+                    ProtocolVersion = (byte)ClientEndPoint.ProtocolVersion //TODO: Add support for different versions(!)
+                };
+                await ServerEndPoint.SendPacketAsync(handshakeRequest);
+
+                var encryptionKeyRequest = await ServerEndPoint.ReceivePacketAsync() as EncryptionKeyRequest;
+
+                ServerEndPoint.ConnectionKey = ProtocolSecurity.GenerateAes128Key();
+                byte[] key = Pdelvo.Minecraft.Network.ProtocolSecurity.RSAEncrypt(ServerEndPoint.ConnectionKey, encryptionKeyRequest.PublicKey.ToArray(), false);
+                byte[] verifyToken = Pdelvo.Minecraft.Network.ProtocolSecurity.RSAEncrypt(encryptionKeyRequest.VerifyToken.ToArray(), encryptionKeyRequest.PublicKey.ToArray(), false);
+
+                var encryptionKeyResponse = new EncryptionKeyResponse
+                {
+                    SharedKey = key,
+                    VerifyToken = verifyToken
+                };
+                await ServerEndPoint.SendPacketAsync(encryptionKeyResponse);
+
+                var p = await ServerEndPoint.ReceivePacketAsync();
+
+                ServerEndPoint.EnableAes();
+
+                await ServerEndPoint.SendPacketAsync(new RespawnRequestPacket());
+
+                var response = await ServerEndPoint.ReceivePacketAsync();
+
+                await ClientEndPoint.SendPacketAsync(response);
             }
             catch (Exception ex)
             {
