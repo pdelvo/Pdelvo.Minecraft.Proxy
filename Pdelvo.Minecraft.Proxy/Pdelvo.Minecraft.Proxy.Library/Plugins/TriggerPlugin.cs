@@ -55,7 +55,21 @@ namespace Pdelvo.Minecraft.Proxy.Library.Plugins
                 catch (Exception ex)
                 {
                     _logger.Warn("Could not pass event 'OnPlayerConnected' to " + item.Name, ex);
-                    //TODO: Log Exception
+                }
+            }
+        }
+
+        public override void OnPlayerServerSelection(GetServerEndPointEventArgs args)
+        {
+            foreach (var item in _triggerPlugins)
+            {
+                try
+                {
+                    item.OnPlayerServerSelection(args);
+                }
+                catch (Exception ex)
+                {
+                    _logger.Warn("Could not pass event 'OnPlayerServerSelection' to " + item.Name, ex);
                 }
             }
         }

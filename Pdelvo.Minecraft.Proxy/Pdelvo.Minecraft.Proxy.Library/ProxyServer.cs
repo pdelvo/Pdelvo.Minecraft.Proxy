@@ -1,24 +1,22 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Security.Cryptography;
-using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 using log4net;
 using Pdelvo.Async.Extensions;
 using Pdelvo.Minecraft.Network;
+using Pdelvo.Minecraft.Proxy.Library.Configuration;
 using Pdelvo.Minecraft.Proxy.Library.Connection;
 using Pdelvo.Minecraft.Proxy.Library.Plugins;
+using Pdelvo.Minecraft.Proxy.Library.Plugins.Events;
 
 namespace Pdelvo.Minecraft.Proxy.Library
 {
     public class ProxyServer : IProxyServer
     {
-        IPEndPoint _localEndPoint;
         bool _listening;
         bool _acceptingNewClients;
         SynchronizedCollection<ProxyConnection> _openConnection;
@@ -30,36 +28,26 @@ namespace Pdelvo.Minecraft.Proxy.Library
         public RSAParameters RSAKeyPair { get; private set; }
         public RSACryptoServiceProvider RSACryptoServiceProvider { get; private set; }
 
-        public ProxyServer(IPEndPoint endPoint)
+        public ProxyServer()
         {
             IsOnlineModeEnabled = false;
             _logger = LogManager.GetLogger("Proxy Server");
-            _localEndPoint = endPoint;
             _pluginManager = new PluginManager();
             _pluginManager.LoadPlugins();
             _openConnection = new SynchronizedCollection<ProxyConnection>();
             _connectedUsers = new SynchronizedCollection<ProxyConnection>();
+            ReadConfig();
         }
 
-        public IPEndPoint LocalEndPoint
-        {
-            get { return _localEndPoint; }
-        }
+        public IPEndPoint LocalEndPoint { get; private set; }
 
         public int ConnectedUsers
         {
             get { return _connectedUsers.Count; }
         }
 
-        public int MaxUsers
-        {
-            get { return 100; }
-        }
-
-        public string MotD
-        {
-            get { return "This is a great test message!"; }
-        }
+        public int MaxUsers { get; set; }
+        public string MotD { get; set; }
 
         public bool Listening
         {
@@ -90,6 +78,14 @@ namespace Pdelvo.Minecraft.Proxy.Library
             _listeningSocket.Listen(10);
 
             ReceiveClientsAsync();
+        }
+
+        void ReadConfig()
+        {
+            var settings = ProxyConfigurationSection.Settings;
+            MotD = settings.Motd;
+            MaxUsers = settings.MaxPlayers;
+            LocalEndPoint = Extensions.ParseEndPoint(settings.LocalEndPoint);
         }
 
         private async void ReceiveClientsAsync()
@@ -172,9 +168,20 @@ namespace Pdelvo.Minecraft.Proxy.Library
         }
 
 
-        public IPEndPoint GetServerEndPoint(IProxyConnection proxyConnection)
+        public RemoteServerInfo GetServerEndPoint(IProxyConnection proxyConnection)
         {
-            return new IPEndPoint(IPAddress.Loopback, 25566);
+
+            var settings = ProxyConfigurationSection.Settings;
+
+            var server = settings.Server.OfType<ServerElement>().Where(m => m.IsDefault || (m.DnsName != null && proxyConnection.Host.StartsWith(m.DnsName))).OrderBy(m => m.IsDefault);
+
+            var possibleResult = server.FirstOrDefault();
+            var result = possibleResult == null ? null :new RemoteServerInfo(possibleResult.Name, Extensions.ParseEndPoint(possibleResult.EndPoint), possibleResult.MinecraftVersion);
+
+            GetServerEndPointEventArgs args = new GetServerEndPointEventArgs(proxyConnection, result);
+            PluginManager.TriggerPlugin.OnPlayerServerSelection(args);
+            args.EnsureSuccess();
+            return args.CurrentInfo;
         }
     }
 }

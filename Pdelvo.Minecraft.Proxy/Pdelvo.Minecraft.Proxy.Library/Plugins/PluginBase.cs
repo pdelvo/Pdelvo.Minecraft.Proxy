@@ -22,5 +22,6 @@ namespace Pdelvo.Minecraft.Proxy.Library.Plugins
         }
 
         public virtual void OnPlayerConnected(PlayerConnectedEventArgs connection) { }
+        public virtual void OnPlayerServerSelection(GetServerEndPointEventArgs args) { }
     }
 }

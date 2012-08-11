@@ -16,5 +16,13 @@ namespace Pdelvo.Minecraft.Proxy.Library.Plugins.Events
             Canceled = true;
             CancelMessage = message;
         }
+
+        /// <summary>
+        /// This message will throw a OperationCanceledException with the <see cref="CancelMessage">CancelMessage</see> if the <see cref="Canceled">Canceled</see> flag is set to true
+        /// </summary>
+        public void EnsureSuccess()
+        {
+            if (Canceled) throw new OperationCanceledException(CancelMessage);
+        }
     }
 }

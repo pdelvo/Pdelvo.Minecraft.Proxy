@@ -34,6 +34,7 @@
       <HintPath>..\packages\log4net.2.0.0\lib\net40-full\log4net.dll</HintPath>
     </Reference>
     <Reference Include="System" />
+    <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
     <Reference Include="System.ServiceModel" />
     <Reference Include="System.Xml.Linq" />
@@ -43,6 +44,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Configuration\ProxyConfigurationSection.cs" />
     <Compile Include="Connection\ConnectionExtensions.cs" />
     <Compile Include="Connection\IProxyEndPoint.cs" />
     <Compile Include="Connection\IProxyConnection.cs" />
@@ -50,6 +52,7 @@
     <Compile Include="Connection\ProxyEndPoint.cs" />
     <Compile Include="IProxyServer.cs" />
     <Compile Include="Plugins\Events\CancelEventArgs.cs" />
+    <Compile Include="Plugins\Events\GetServerEndPointEventArgs.cs" />
     <Compile Include="Plugins\Events\PlayerConnectedEventArgs.cs" />
     <Compile Include="Plugins\PluginAssemblyAttribute.cs" />
     <Compile Include="Plugins\PluginBase.cs" />
@@ -58,6 +61,7 @@
     <Compile Include="Connection\ProxyConnection.cs" />
     <Compile Include="ProxyServer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="RemoteServerInfo.cs" />
     <Compile Include="Session.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -77,6 +81,7 @@
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

@@ -14,8 +14,8 @@ namespace Pdelvo.Minecraft.Proxy.Console
         static void Main(string[] args)
         {
             System.Console.WriteLine("Press q to quit");
-            log4net.Config.BasicConfigurator.Configure();
-            IProxyServer server = new ProxyServer(new IPEndPoint(IPAddress.Any, 25565));
+            log4net.Config.XmlConfigurator.Configure();
+            IProxyServer server = new ProxyServer();
             server.Start();
 
             while (System.Console.ReadKey(true).Key != ConsoleKey.Q) { }

@@ -48,6 +48,7 @@ namespace Pdelvo.Minecraft.Proxy.Library.Connection
 
         internal virtual async void HandleClient()
         {
+            bool success = true;
             try
             {
                 var clientRemoteInterface = ClientRemoteInterface.Create(new NetworkStream(_networkSocket), 39);
@@ -140,24 +141,26 @@ namespace Pdelvo.Minecraft.Proxy.Library.Connection
             }
             catch (Exception ex)
             {
-                KickUserAsync("Failed to login");
+                success = false;
                 _logger.Error("Failed to login a Client", ex);
-
             }
+            if (!success)
+                await KickUserAsync("Failed to login");
         }
 
         private async Task InitializeServerAsync()
         {
+            bool success = true;
             try
             {
                 var serverEndPoint = _server.GetServerEndPoint(this);
 
-                var socket = new Socket(serverEndPoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp)
+                var socket = new Socket(serverEndPoint.EndPoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp)
                 {
                     ReceiveBufferSize = 1024*1024
                 };
 
-                await socket.ConnectTaskAsync(serverEndPoint);
+                await socket.ConnectTaskAsync(serverEndPoint.EndPoint);
 
                 _serverEndPoint = new ProxyEndPoint(ServerRemoteInterface.Create(new NetworkStream(socket), ClientEndPoint.ProtocolVersion), ClientEndPoint.ProtocolVersion);
 
@@ -165,7 +168,7 @@ namespace Pdelvo.Minecraft.Proxy.Library.Connection
                 {
                     UserName = Username,
                     Host = Host,
-                    ProtocolVersion = (byte)ClientEndPoint.ProtocolVersion //TODO: Add support for different versions(!)
+                    ProtocolVersion = (byte)serverEndPoint.MinecraftVersion
                 };
                 await ServerEndPoint.SendPacketAsync(handshakeRequest);
 
@@ -200,9 +203,11 @@ namespace Pdelvo.Minecraft.Proxy.Library.Connection
             }
             catch (Exception ex)
             {
-                KickUserAsync("Could not connect to remote server");
+                success = false;
                 _logger.Error("Could not connect to remote server", ex);
             }
+            if (!success)
+                await KickUserAsync("Could not connect to remote server");
         }
 
         void ClientPacketReceived(object sender, PacketReceivedEventArgs args)
