@@ -59,6 +59,19 @@ namespace Pdelvo.Minecraft.Proxy.Library.Configuration
             }
         }
 
+        [ConfigurationProperty("onlineMode", DefaultValue = true, IsRequired = false)]
+        public bool OnlineMode
+        {
+            get
+            {
+                return (bool)this["onlineMode"];
+            }
+            set
+            {
+                this["onlineMode"] = value;
+            }
+        }
+
         [ConfigurationProperty("server", IsDefaultCollection = false)]
         public ServerCollection Server
         {

@@ -15,11 +15,11 @@ namespace Pdelvo.Minecraft.Proxy.Library
         PluginManager PluginManager { get;}
         IPEndPoint LocalEndPoint { get; }
         int ConnectedUsers { get; }
-        bool IsOnlineModeEnabled { get; }
+        bool OnlineMode { get; }
         RSAParameters RSAKeyPair { get; }
         RSACryptoServiceProvider RSACryptoServiceProvider { get; }
-        int MaxUsers { get; }
-        string MotD { get; }
+        int MaxUsers { get; set; }
+        string MotD { get; set; }
         bool Listening { get; }
         void Start();
         Task StopAsync();

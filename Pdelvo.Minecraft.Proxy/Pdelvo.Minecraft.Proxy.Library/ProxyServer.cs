@@ -24,13 +24,11 @@ namespace Pdelvo.Minecraft.Proxy.Library
         Socket _listeningSocket;
         PluginManager _pluginManager;
         ILog _logger;
-        public bool IsOnlineModeEnabled { get; set; }
         public RSAParameters RSAKeyPair { get; private set; }
         public RSACryptoServiceProvider RSACryptoServiceProvider { get; private set; }
 
         public ProxyServer()
         {
-            IsOnlineModeEnabled = false;
             _logger = LogManager.GetLogger("Proxy Server");
             _pluginManager = new PluginManager();
             _pluginManager.LoadPlugins();
@@ -47,6 +45,7 @@ namespace Pdelvo.Minecraft.Proxy.Library
         }
 
         public int MaxUsers { get; set; }
+        public bool OnlineMode { get; set; }
         public string MotD { get; set; }
 
         public bool Listening
@@ -86,6 +85,7 @@ namespace Pdelvo.Minecraft.Proxy.Library
             MotD = settings.Motd;
             MaxUsers = settings.MaxPlayers;
             LocalEndPoint = Extensions.ParseEndPoint(settings.LocalEndPoint);
+            OnlineMode = settings.OnlineMode;
         }
 
         private async void ReceiveClientsAsync()
@@ -182,6 +182,11 @@ namespace Pdelvo.Minecraft.Proxy.Library
             PluginManager.TriggerPlugin.OnPlayerServerSelection(args);
             args.EnsureSuccess();
             return args.CurrentInfo;
+        }
+
+        public bool OnlineModeEnabled(ProxyConnection proxyConnection)
+        {
+            return OnlineMode; //TODO: Add plugin support
         }
     }
 }

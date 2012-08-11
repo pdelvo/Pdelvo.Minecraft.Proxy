@@ -86,7 +86,7 @@ namespace Pdelvo.Minecraft.Proxy.Library.Connection
                     }
                     _logger.InfoFormat("{0} is connecting...", Username);
 
-                    bool onlineMode = _server.IsOnlineModeEnabled;
+                    bool onlineMode = _server.OnlineModeEnabled(this);
                     string serverId = onlineMode ? Session.GetSessionHash() : "-";
 
                     byte[] randomBuffer = new byte[4];
@@ -129,6 +129,22 @@ namespace Pdelvo.Minecraft.Proxy.Library.Connection
                         return;
                     }
 
+                    var hash = ProtocolSecurity.ComputeHash(
+                        Encoding.ASCII.GetBytes(serverId),
+                        ClientEndPoint.ConnectionKey,
+                        AsnKeyBuilder.PublicKeyToX509(_server.RSAKeyPair).GetBytes());
+
+                    //TODO: Acc plugin support
+                    if (onlineMode)
+                    {
+                        var result = await UserAccountServices.CheckAccountAsync(Username, hash);
+
+                        if (!result)
+                        {
+                            await KickUserAsync("User not premium");
+                            return;
+                        }
+                    }
 
                     _logger.InfoFormat("{0} is connected", Username);
 
