@@ -22,6 +22,7 @@ namespace Pdelvo.Minecraft.Proxy.Library.Connection
         ProxyEndPoint _clientEndPoint;
         ILog _logger;
         Random _random;
+        bool _connectionClosed;
 
         public string Username { get; protected set; }
         public string Host { get; protected set; }
@@ -214,6 +215,9 @@ namespace Pdelvo.Minecraft.Proxy.Library.Connection
                 ClientEndPoint.PacketReceived += ClientPacketReceived;
                 ServerEndPoint.PacketReceived += ServerPacketReceived;
 
+                ClientEndPoint.ConnectionLost += ClientConnectionLost;
+                ServerEndPoint.ConnectionLost += ServerConnectionLost;
+
                 ClientEndPoint.StartListening();
                 ServerEndPoint.StartListening();
             }
@@ -224,6 +228,26 @@ namespace Pdelvo.Minecraft.Proxy.Library.Connection
             }
             if (!success)
                 await KickUserAsync("Could not connect to remote server");
+        }
+
+        void ClientConnectionLost(object sender, EventArgs e)
+        {
+            if (_connectionClosed) return;
+            _connectionClosed = true;
+            ServerEndPoint.Close();
+            ClientEndPoint.Close();
+            _logger.Error(Username + " lost connection");
+            _server.RemoveConnection(this);
+        }
+
+        void ServerConnectionLost(object sender, EventArgs e)
+        {
+            if (_connectionClosed) return;
+            _connectionClosed = true;
+            ServerEndPoint.Close();
+            ClientEndPoint.Close();
+            _logger.Error(Username + " lost connection");
+            _server.RemoveConnection(this);
         }
 
         void ClientPacketReceived(object sender, PacketReceivedEventArgs args)
@@ -242,6 +266,10 @@ namespace Pdelvo.Minecraft.Proxy.Library.Connection
             {
                 await ClientEndPoint.SendPacketAsync(new DisconnectPacket { Reason = message });
                 ClientEndPoint.Close();
+                if (ServerEndPoint != null)
+                {
+                    ServerEndPoint.Close();
+                }
             }
             catch (Exception) { }
             finally
