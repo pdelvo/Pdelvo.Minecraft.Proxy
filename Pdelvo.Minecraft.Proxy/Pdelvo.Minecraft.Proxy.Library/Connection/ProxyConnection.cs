@@ -74,7 +74,7 @@ namespace Pdelvo.Minecraft.Proxy.Library.Connection
                     Username = handshakeRequest.UserName;
                     Host = handshakeRequest.Host;
                     ClientEndPoint.ProtocolVersion = handshakeRequest.ProtocolVersion;
-                    var args = new PlayerConnectedEventArgs(this);
+                    var args = new UserEventArgs(this);
 
                     _server.PluginManager.TriggerPlugin.OnPlayerConnected(args);
 
@@ -138,7 +138,16 @@ namespace Pdelvo.Minecraft.Proxy.Library.Connection
                     //TODO: Acc plugin support
                     if (onlineMode)
                     {
-                        var result = await UserAccountServices.CheckAccountAsync(Username, hash);
+                        bool result;
+                        try
+                        {
+                            result = await UserAccountServices.CheckAccountAsync(Username, hash);
+                        }
+                        catch (OperationCanceledException ex)
+                        {
+                            var t =KickUserAsync(ex.Message);
+                            return;
+                        }
 
                         if (!result)
                         {
@@ -252,12 +261,20 @@ namespace Pdelvo.Minecraft.Proxy.Library.Connection
 
         void ClientPacketReceived(object sender, PacketReceivedEventArgs args)
         {
-            ServerEndPoint.SendPacketQueued(args.Packet);
+            args.Connection = this;
+            _server.PluginManager.ApplyClientPacket(args);
+
+            if (!args.Handled)
+                ServerEndPoint.SendPacketQueued(args.Packet);
         }
 
         void ServerPacketReceived(object sender, PacketReceivedEventArgs args)
         {
-           ClientEndPoint.SendPacketQueued(args.Packet);
+            args.Connection = this;
+            _server.PluginManager.ApplyServerPacket(args);
+
+            if (!args.Handled)
+                ClientEndPoint.SendPacketQueued(args.Packet);
         }
 
         private async Task KickUserAsync(string message)

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Pdelvo.Minecraft.Protocol.Packets;
+using Pdelvo.Minecraft.Proxy.Library.Plugins.Events;
 
 namespace Pdelvo.Minecraft.Proxy.Library.Connection
 {

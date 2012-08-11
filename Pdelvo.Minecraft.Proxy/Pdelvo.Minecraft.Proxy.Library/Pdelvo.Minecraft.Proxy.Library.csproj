@@ -49,12 +49,13 @@
     <Compile Include="Connection\ConnectionExtensions.cs" />
     <Compile Include="Connection\IProxyEndPoint.cs" />
     <Compile Include="Connection\IProxyConnection.cs" />
-    <Compile Include="Connection\PacketReceivedEventArgs.cs" />
     <Compile Include="Connection\ProxyEndPoint.cs" />
     <Compile Include="IProxyServer.cs" />
     <Compile Include="Plugins\Events\CancelEventArgs.cs" />
-    <Compile Include="Plugins\Events\GetServerEndPointEventArgs.cs" />
-    <Compile Include="Plugins\Events\PlayerConnectedEventArgs.cs" />
+    <Compile Include="Plugins\Events\PacketReceivedEventArgs.cs" />
+    <Compile Include="Plugins\Events\PluginResultEventArgs.cs" />
+    <Compile Include="Plugins\Events\UserEventArgs.cs" />
+    <Compile Include="Plugins\IPacketListener.cs" />
     <Compile Include="Plugins\PluginAssemblyAttribute.cs" />
     <Compile Include="Plugins\PluginBase.cs" />
     <Compile Include="Plugins\PluginManager.cs" />

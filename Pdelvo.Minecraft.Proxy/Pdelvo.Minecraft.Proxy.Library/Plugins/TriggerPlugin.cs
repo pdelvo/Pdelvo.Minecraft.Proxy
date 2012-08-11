@@ -44,7 +44,7 @@ namespace Pdelvo.Minecraft.Proxy.Library.Plugins
             return _triggerPlugins.Select(a => a.AllowJoining(address)).SkipWhile(a => a == null).FirstOrDefault() ?? true;
         }
 
-        public override void OnPlayerConnected(PlayerConnectedEventArgs connection)
+        public override void OnPlayerConnected(UserEventArgs connection)
         {
             foreach (var item in _triggerPlugins)
             {
@@ -59,7 +59,7 @@ namespace Pdelvo.Minecraft.Proxy.Library.Plugins
             }
         }
 
-        public override void OnPlayerServerSelection(GetServerEndPointEventArgs args)
+        public override void OnPlayerServerSelection(PluginResultEventArgs<RemoteServerInfo> args)
         {
             foreach (var item in _triggerPlugins)
             {
@@ -72,6 +72,11 @@ namespace Pdelvo.Minecraft.Proxy.Library.Plugins
                     _logger.Warn("Could not pass event 'OnPlayerServerSelection' to " + item.Name, ex);
                 }
             }
+        }
+
+        public override void Load(PluginManager manager)
+        {
+            throw new NotSupportedException();
         }
     }
 }

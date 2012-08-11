@@ -7,13 +7,14 @@ using Pdelvo.Minecraft.Proxy.Library.Connection;
 
 namespace Pdelvo.Minecraft.Proxy.Library.Plugins.Events
 {
-    public class PlayerConnectedEventArgs : CancelEventArgs
+    public class PluginResultEventArgs<T> : UserEventArgs
     {
-        public IProxyConnection Connection { get; private set; }
+        public T Result { get; set; }
 
-        public PlayerConnectedEventArgs(IProxyConnection connection)
+        public PluginResultEventArgs(T result, IProxyConnection connection)
+            :base(connection)
         {
-            Connection = connection;
+
         }
     }
 }

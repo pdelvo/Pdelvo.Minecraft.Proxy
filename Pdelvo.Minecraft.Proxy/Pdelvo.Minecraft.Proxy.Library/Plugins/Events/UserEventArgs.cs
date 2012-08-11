@@ -7,15 +7,13 @@ using Pdelvo.Minecraft.Proxy.Library.Connection;
 
 namespace Pdelvo.Minecraft.Proxy.Library.Plugins.Events
 {
-    public class GetServerEndPointEventArgs : CancelEventArgs
+    public class UserEventArgs : CancelEventArgs
     {
-        public RemoteServerInfo CurrentInfo { get; set; }
         public IProxyConnection Connection { get; private set; }
 
-        public GetServerEndPointEventArgs(IProxyConnection connection, RemoteServerInfo info)
+        public UserEventArgs(IProxyConnection connection)
         {
             Connection = connection;
-            CurrentInfo = info;
         }
     }
 }

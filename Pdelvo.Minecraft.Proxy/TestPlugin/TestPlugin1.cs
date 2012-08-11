@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Pdelvo.Minecraft.Proxy.Library.Plugins;
+using Pdelvo.Minecraft.Proxy.Library.Plugins.Events;
 
 namespace TestPlugin
 {
@@ -33,9 +34,13 @@ namespace TestPlugin
             return true;
         }
 
-        public override void OnPlayerConnected(Pdelvo.Minecraft.Proxy.Library.Plugins.Events.PlayerConnectedEventArgs connection)
+        public override void OnPlayerConnected(UserEventArgs connection)
         {
             //connection.SetCanceled("Test message");
+        }
+
+        public override void Load(PluginManager manager)
+        {
         }
     }
 }

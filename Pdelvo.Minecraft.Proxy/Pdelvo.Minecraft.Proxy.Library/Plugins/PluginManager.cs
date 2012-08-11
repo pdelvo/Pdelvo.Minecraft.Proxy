@@ -6,13 +6,17 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using log4net;
+using Pdelvo.Minecraft.Proxy.Library.Plugins.Events;
 namespace Pdelvo.Minecraft.Proxy.Library.Plugins
 {
     public class PluginManager
     {
         List<PluginBase> _plugins = new List<PluginBase>();
+        List<IPacketListener> _packetListener = new List<IPacketListener>();
 
         ILog _logger;
+
+        public IProxyServer Server { get; private set; }
 
         static PluginManager()
         {
@@ -23,12 +27,54 @@ namespace Pdelvo.Minecraft.Proxy.Library.Plugins
             AppDomain.CurrentDomain.AssemblyResolve += handler;
         }
 
-        public PluginManager()
+        public PluginManager(IProxyServer server)
         {
+            Server = server;
             _logger = LogManager.GetLogger("Plugin Manager");
             TriggerPlugin = new TriggerPlugin(_plugins);
 
             _plugins.AddRange(LoadPlugins());
+        }
+
+        public void RegisterPacketListener(IPacketListener listener)
+        {
+            _packetListener.Add(listener);
+        }
+
+        public void ApplyClientPacket(PacketReceivedEventArgs args)
+        {
+            List<IPacketListener> removeListener = new List<IPacketListener>();
+            foreach (var item in _packetListener)
+            {
+                try
+                {
+                    item.ClientPacketReceived(args);
+                }
+                catch (Exception ex)
+                {
+                    _logger.Error(string.Format("Could not pass client packet {0} to {1}, removing packet listener.", args.Packet, item), ex);
+                    removeListener.Add(item);
+                }
+            }
+            _packetListener.RemoveAll(a => removeListener.Contains(a));
+        }
+
+        public void ApplyServerPacket(PacketReceivedEventArgs args)
+        {
+            List<IPacketListener> removeListener = new List<IPacketListener>();
+            foreach (var item in _packetListener)
+            {
+                try
+                {
+                    item.ServerPacketReceived(args);
+                }
+                catch (Exception ex)
+                {
+                    _logger.Error(string.Format("Could not pass server packet {0} to {1}, removing packet listener.", args.Packet, item), ex);
+                    removeListener.Add(item);
+                }
+            }
+            _packetListener.RemoveAll(a => removeListener.Contains(a));
         }
 
         public IEnumerable<PluginBase> LoadPlugins()
@@ -44,7 +90,9 @@ namespace Pdelvo.Minecraft.Proxy.Library.Plugins
                     var pluginAttributes = assembly.GetCustomAttributes<PluginAssemblyAttribute>();
                     foreach (var plugin in pluginAttributes)
                     {
-                         plugins.Add((PluginBase)Activator.CreateInstance(plugin.PluginType));
+                        var pl = (PluginBase)Activator.CreateInstance(plugin.PluginType);
+                         plugins.Add(pl);
+                         pl.Load(this);
                     }
                 }
                 catch (Exception ex)

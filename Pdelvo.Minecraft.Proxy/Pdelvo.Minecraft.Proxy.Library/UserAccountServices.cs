@@ -11,11 +11,18 @@ namespace Pdelvo.Minecraft.Proxy.Library
     {
         public static async Task<bool> CheckAccountAsync(string username, string hash)
         {
-            string url = "https://session.minecraft.net/game/checkserver.jsp?user={0}&serverId={1}";
-            url = String.Format(url, Uri.EscapeDataString(username), Uri.EscapeDataString(hash));
-            var client = new HttpClient();
-            var result = await client.GetStringAsync(url);
-            return result == "YES";
+            try
+            {
+                string url = "https://session.minecraft.net/game/checkserver.jsp?user={0}&serverId={1}";
+                url = String.Format(url, Uri.EscapeDataString(username), Uri.EscapeDataString(hash));
+                var client = new HttpClient();
+                var result = await client.GetStringAsync(url);
+                return result == "YES";
+            }
+            catch (Exception)
+            {
+                return false;
+            }
         }
     }
 }

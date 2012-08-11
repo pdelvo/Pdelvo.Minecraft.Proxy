@@ -26,11 +26,12 @@ namespace Pdelvo.Minecraft.Proxy.Library
         ILog _logger;
         public RSAParameters RSAKeyPair { get; private set; }
         public RSACryptoServiceProvider RSACryptoServiceProvider { get; private set; }
+        public bool AcceptingNewClients { get { return _acceptingNewClients; } }
 
         public ProxyServer()
         {
             _logger = LogManager.GetLogger("Proxy Server");
-            _pluginManager = new PluginManager();
+            _pluginManager = new PluginManager(this);
             _pluginManager.LoadPlugins();
             _openConnection = new SynchronizedCollection<ProxyConnection>();
             _connectedUsers = new SynchronizedCollection<ProxyConnection>();
@@ -178,10 +179,10 @@ namespace Pdelvo.Minecraft.Proxy.Library
             var possibleResult = server.FirstOrDefault();
             var result = possibleResult == null ? null :new RemoteServerInfo(possibleResult.Name, Extensions.ParseEndPoint(possibleResult.EndPoint), possibleResult.MinecraftVersion);
 
-            GetServerEndPointEventArgs args = new GetServerEndPointEventArgs(proxyConnection, result);
+            PluginResultEventArgs<RemoteServerInfo> args = new PluginResultEventArgs<RemoteServerInfo>(result, proxyConnection);
             PluginManager.TriggerPlugin.OnPlayerServerSelection(args);
             args.EnsureSuccess();
-            return args.CurrentInfo;
+            return args.Result;
         }
 
         public bool OnlineModeEnabled(ProxyConnection proxyConnection)
