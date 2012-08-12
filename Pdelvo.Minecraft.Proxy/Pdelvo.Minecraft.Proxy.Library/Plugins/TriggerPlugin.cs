@@ -74,6 +74,21 @@ namespace Pdelvo.Minecraft.Proxy.Library.Plugins
             }
         }
 
+        public override void OnConnectionLost(UserEventArgs args)
+        {
+            foreach (var item in _triggerPlugins)
+            {
+                try
+                {
+                    item.OnConnectionLost(args);
+                }
+                catch (Exception ex)
+                {
+                    _logger.Warn("Could not pass event 'OnConnectionLost' to " + item.Name, ex);
+                }
+            }
+        }
+
         public override void Load(PluginManager manager)
         {
             throw new NotSupportedException();

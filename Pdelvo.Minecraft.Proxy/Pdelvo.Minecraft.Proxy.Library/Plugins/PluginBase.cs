@@ -23,7 +23,8 @@ namespace Pdelvo.Minecraft.Proxy.Library.Plugins
 
         public abstract void Load(PluginManager manager);
 
-        public virtual void OnPlayerConnected(UserEventArgs connection) { }
+        public virtual void OnPlayerConnected(UserEventArgs args) { }
         public virtual void OnPlayerServerSelection(PluginResultEventArgs<RemoteServerInfo> args) { }
+        public virtual void OnConnectionLost(UserEventArgs args) { }
     }
 }

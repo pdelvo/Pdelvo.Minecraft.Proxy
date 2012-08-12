@@ -266,12 +266,12 @@ namespace Pdelvo.Minecraft.Proxy.Library.Connection
 
         void ClientConnectionLost(object sender, EventArgs e)
         {
-            if (_connectionClosed) return;
-            _connectionClosed = true;
-            ServerEndPoint.Close();
-            ClientEndPoint.Close();
-            _logger.Error(Username + " lost connection");
-            _server.RemoveConnection(this);
+            OnConnectionLost();
+        }
+
+        private void OnConnectionLost()
+        {
+            OnConnectionLost();
         }
 
         void ServerConnectionLost(object sender, EventArgs e)

@@ -160,7 +160,10 @@ namespace Pdelvo.Minecraft.Proxy.Library
         {
             _openConnection.Remove(proxyConnection);
             if (_connectedUsers.Contains(proxyConnection))
+            {
+                PluginManager.TriggerPlugin.OnConnectionLost(new UserEventArgs(proxyConnection));
                 _connectedUsers.Remove(proxyConnection);
+            }
         }
 
         internal void PromoteConnection(ProxyConnection proxyConnection)

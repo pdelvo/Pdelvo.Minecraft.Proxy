@@ -14,7 +14,7 @@ namespace Pdelvo.Minecraft.Proxy.Library.Plugins.Events
         public PluginResultEventArgs(T result, IProxyConnection connection)
             :base(connection)
         {
-
+            Result = result;
         }
     }
 }
