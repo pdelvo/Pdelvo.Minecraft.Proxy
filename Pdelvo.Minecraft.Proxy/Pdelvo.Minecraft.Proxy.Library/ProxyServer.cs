@@ -24,8 +24,8 @@ namespace Pdelvo.Minecraft.Proxy.Library
         Socket _listeningSocket;
         PluginManager _pluginManager;
         ILog _logger;
-        public RSAParameters RSAKeyPair { get; private set; }
-        public RSACryptoServiceProvider RSACryptoServiceProvider { get; private set; }
+        internal RSAParameters RSAKeyPair { get; private set; }
+        internal RSACryptoServiceProvider RSACryptoServiceProvider { get; private set; }
         public bool AcceptingNewClients { get { return _acceptingNewClients; } }
 
         public ProxyServer()
