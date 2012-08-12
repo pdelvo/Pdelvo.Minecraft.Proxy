@@ -74,6 +74,18 @@ namespace Pdelvo.Minecraft.Proxy.Library.Connection
                     Username = handshakeRequest.UserName;
                     Host = handshakeRequest.Host;
                     ClientEndPoint.ProtocolVersion = handshakeRequest.ProtocolVersion;
+
+                    if (handshakeRequest.ProtocolVersion < ProtocolInformation.MinSupportedClientVersion)
+                    {
+                        await KickUserAsync("Outdated Client");
+                        return;
+                    }
+                    else if (handshakeRequest.ProtocolVersion > ProtocolInformation.MaxSupportedClientVersion)
+                    {
+                        await KickUserAsync("Outdated Server");
+                        return;
+                    }
+
                     var args = new UserEventArgs(this);
 
                     _server.PluginManager.TriggerPlugin.OnPlayerConnected(args);
