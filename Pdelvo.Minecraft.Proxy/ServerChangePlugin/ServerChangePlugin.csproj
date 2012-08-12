@@ -4,11 +4,11 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{F57A9140-0D27-4715-87AC-EC0074B081BA}</ProjectGuid>
+    <ProjectGuid>{0829614F-31E5-4DA4-B311-99F557D31EA0}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>TestPlugin</RootNamespace>
-    <AssemblyName>TestPlugin</AssemblyName>
+    <RootNamespace>ServerChangePlugin</RootNamespace>
+    <AssemblyName>ServerChangePlugin</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
@@ -24,7 +24,7 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
+    <OutputPath>..\Pdelvo.Minecraft.Proxy.Console\bin\Debug\plugins\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -41,13 +41,9 @@
   <ItemGroup>
     <Compile Include="Global.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="TestPlugin1.cs" />
+    <Compile Include="ServerChangePlugin.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\externals\asynclib\Pdelvo.Async.Extensions.csproj">
-      <Project>{835ae408-e04f-4e51-82c2-74f899c6dda0}</Project>
-      <Name>Pdelvo.Async.Extensions</Name>
-    </ProjectReference>
     <ProjectReference Include="..\..\externals\minecraftlib\Pdelvo.Minecraft.Network\Pdelvo.Minecraft.Network.csproj">
       <Project>{8291168c-ff6f-47f8-b166-9b5d551e7bca}</Project>
       <Name>Pdelvo.Minecraft.Network</Name>

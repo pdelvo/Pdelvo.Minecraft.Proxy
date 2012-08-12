@@ -147,7 +147,7 @@ namespace Pdelvo.Minecraft.Proxy.Library.Connection
                         ClientEndPoint.ConnectionKey,
                         AsnKeyBuilder.PublicKeyToX509(_server.RSAKeyPair).GetBytes());
 
-                    //TODO: Acc plugin support
+                    //TODO: Add plugin support
                     if (onlineMode)
                     {
                         bool result;
@@ -176,14 +176,8 @@ namespace Pdelvo.Minecraft.Proxy.Library.Connection
 
                     await ClientEndPoint.SendPacketAsync(response);
 
-                    ClientEndPoint.PacketReceived += ClientPacketReceived;
-                    ServerEndPoint.PacketReceived += ServerPacketReceived;
-
-                    ClientEndPoint.ConnectionLost += ClientConnectionLost;
-                    ServerEndPoint.ConnectionLost += ServerConnectionLost;
-
-                    ClientEndPoint.StartListening();
-                    ServerEndPoint.StartListening();
+                    StartClientListening();
+                    StartServerListening();
                 }
             }
             catch (TaskCanceledException)
@@ -217,16 +211,21 @@ namespace Pdelvo.Minecraft.Proxy.Library.Connection
 
         public async Task<Packet> InitializeServerAsync(RemoteServerInfo serverEndPoint)
         {
+            ProxyEndPoint server = null;
             try
             {
+                UnregisterServer();
+                _serverEndPoint = null;
+
                 var socket = new Socket(serverEndPoint.EndPoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp)
                 {
-                    ReceiveBufferSize = 1024*1024
+                    ReceiveBufferSize = 1024 * 1024
                 };
 
                 await socket.ConnectTaskAsync(serverEndPoint.EndPoint);
 
-                _serverEndPoint = new ProxyEndPoint(ServerRemoteInterface.Create(new NetworkStream(socket), ClientEndPoint.ProtocolVersion), ClientEndPoint.ProtocolVersion);
+
+                server = new ProxyEndPoint(ServerRemoteInterface.Create(new NetworkStream(socket), ClientEndPoint.ProtocolVersion), ClientEndPoint.ProtocolVersion);
 
                 var handshakeRequest = new HandshakeRequest
                 {
@@ -234,12 +233,12 @@ namespace Pdelvo.Minecraft.Proxy.Library.Connection
                     Host = Host,
                     ProtocolVersion = (byte)serverEndPoint.MinecraftVersion
                 };
-                await ServerEndPoint.SendPacketAsync(handshakeRequest);
+                await server.SendPacketAsync(handshakeRequest);
 
-                var encryptionKeyRequest = await ServerEndPoint.ReceivePacketAsync() as EncryptionKeyRequest;
+                var encryptionKeyRequest = await server.ReceivePacketAsync() as EncryptionKeyRequest;
 
-                ServerEndPoint.ConnectionKey = ProtocolSecurity.GenerateAes128Key();
-                byte[] key = Pdelvo.Minecraft.Network.ProtocolSecurity.RSAEncrypt(ServerEndPoint.ConnectionKey, encryptionKeyRequest.PublicKey.ToArray(), false);
+                server.ConnectionKey = ProtocolSecurity.GenerateAes128Key();
+                byte[] key = Pdelvo.Minecraft.Network.ProtocolSecurity.RSAEncrypt(server.ConnectionKey, encryptionKeyRequest.PublicKey.ToArray(), false);
                 byte[] verifyToken = Pdelvo.Minecraft.Network.ProtocolSecurity.RSAEncrypt(encryptionKeyRequest.VerifyToken.ToArray(), encryptionKeyRequest.PublicKey.ToArray(), false);
 
                 var encryptionKeyResponse = new EncryptionKeyResponse
@@ -247,21 +246,39 @@ namespace Pdelvo.Minecraft.Proxy.Library.Connection
                     SharedKey = key,
                     VerifyToken = verifyToken
                 };
-                await ServerEndPoint.SendPacketAsync(encryptionKeyResponse);
+                await server.SendPacketAsync(encryptionKeyResponse);
 
-                var p = await ServerEndPoint.ReceivePacketAsync();
+                var p = await server.ReceivePacketAsync();
 
-                ServerEndPoint.EnableAes();
+                server.EnableAes();
 
-                await ServerEndPoint.SendPacketAsync(new RespawnRequestPacket());
+                await server.SendPacketAsync(new RespawnRequestPacket());
 
-                return await ServerEndPoint.ReceivePacketAsync();
+                return await server.ReceivePacketAsync();
             }
             catch (Exception ex)
             {
                 _logger.Error("Could not connect to remote server", ex);
                 throw;
             }
+            finally
+            {
+                _serverEndPoint = server;
+            }
+        }
+
+        public void StartServerListening()
+        {
+            ServerEndPoint.ConnectionLost += ServerConnectionLost;
+            ServerEndPoint.PacketReceived += ServerPacketReceived;
+            ServerEndPoint.StartListening();
+        }
+
+        public void StartClientListening()
+        {
+            ClientEndPoint.ConnectionLost += ClientConnectionLost;
+            ClientEndPoint.PacketReceived += ClientPacketReceived;
+            ClientEndPoint.StartListening();
         }
 
         void ClientConnectionLost(object sender, EventArgs e)
@@ -328,6 +345,18 @@ namespace Pdelvo.Minecraft.Proxy.Library.Connection
         public IProxyEndPoint ClientEndPoint
         {
             get { return _clientEndPoint; }
+        }
+
+
+        void UnregisterServer()
+        {
+            if (ServerEndPoint != null)
+            {
+                ServerEndPoint.PacketReceived -= ServerPacketReceived;
+                ServerEndPoint.ConnectionLost -= ServerConnectionLost;
+                ServerEndPoint.Close();
+                _serverEndPoint = null;
+            }
         }
     }
 }
