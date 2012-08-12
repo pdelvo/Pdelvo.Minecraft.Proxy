@@ -145,7 +145,7 @@ namespace Pdelvo.Minecraft.Proxy.Library.Connection
                         }
                         catch (OperationCanceledException ex)
                         {
-                            var t =KickUserAsync(ex.Message);
+                            var t = KickUserAsync(ex.Message);
                             return;
                         }
 
@@ -160,10 +160,23 @@ namespace Pdelvo.Minecraft.Proxy.Library.Connection
 
                     _server.PromoteConnection(this);
 
-                    await InitializeServerAsync();
+                    var response = await InitializeServerAsync();
 
-                    //await KickUserAsync("Not yet implemented");
+                    await ClientEndPoint.SendPacketAsync(response);
+
+                    ClientEndPoint.PacketReceived += ClientPacketReceived;
+                    ServerEndPoint.PacketReceived += ServerPacketReceived;
+
+                    ClientEndPoint.ConnectionLost += ClientConnectionLost;
+                    ServerEndPoint.ConnectionLost += ServerConnectionLost;
+
+                    ClientEndPoint.StartListening();
+                    ServerEndPoint.StartListening();
                 }
+            }
+            catch (TaskCanceledException)
+            {
+                return;
             }
             catch (Exception ex)
             {
@@ -174,13 +187,26 @@ namespace Pdelvo.Minecraft.Proxy.Library.Connection
                 await KickUserAsync("Failed to login");
         }
 
-        private async Task InitializeServerAsync()
+        private async Task<Packet> InitializeServerAsync()
         {
             bool success = true;
             try
             {
-                var serverEndPoint = _server.GetServerEndPoint(this);
+                return await InitializeServerAsync(_server.GetServerEndPoint(this));
+            }
+            catch (Exception)
+            {
+                success = false;
+            }
+            if (!success)
+                await KickUserAsync("Could not connect to remote server");
+            throw new TaskCanceledException();
+        }
 
+        public async Task<Packet> InitializeServerAsync(RemoteServerInfo serverEndPoint)
+        {
+            try
+            {
                 var socket = new Socket(serverEndPoint.EndPoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp)
                 {
                     ReceiveBufferSize = 1024*1024
@@ -217,26 +243,14 @@ namespace Pdelvo.Minecraft.Proxy.Library.Connection
 
                 await ServerEndPoint.SendPacketAsync(new RespawnRequestPacket());
 
-                var response = await ServerEndPoint.ReceivePacketAsync();
-                
-                await ClientEndPoint.SendPacketAsync(response);
-
-                ClientEndPoint.PacketReceived += ClientPacketReceived;
-                ServerEndPoint.PacketReceived += ServerPacketReceived;
-
-                ClientEndPoint.ConnectionLost += ClientConnectionLost;
-                ServerEndPoint.ConnectionLost += ServerConnectionLost;
-
-                ClientEndPoint.StartListening();
-                ServerEndPoint.StartListening();
+                return await ServerEndPoint.ReceivePacketAsync();
             }
             catch (Exception ex)
             {
                 success = false;
                 _logger.Error("Could not connect to remote server", ex);
+                throw;
             }
-            if (!success)
-                await KickUserAsync("Could not connect to remote server");
         }
 
         void ClientConnectionLost(object sender, EventArgs e)
