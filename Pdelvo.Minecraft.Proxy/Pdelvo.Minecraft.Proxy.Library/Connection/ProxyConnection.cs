@@ -247,7 +247,6 @@ namespace Pdelvo.Minecraft.Proxy.Library.Connection
             }
             catch (Exception ex)
             {
-                success = false;
                 _logger.Error("Could not connect to remote server", ex);
                 throw;
             }

@@ -16,8 +16,6 @@ namespace Pdelvo.Minecraft.Proxy.Library
         IPEndPoint LocalEndPoint { get; }
         int ConnectedUsers { get; }
         bool OnlineMode { get; }
-        RSAParameters RSAKeyPair { get; }
-        RSACryptoServiceProvider RSACryptoServiceProvider { get; }
         int MaxUsers { get; set; }
         string MotD { get; set; }
         bool Listening { get; }
