@@ -20,5 +20,7 @@ namespace Pdelvo.Minecraft.Proxy.Library.Connection
 
         Task CloseAsync();
         Task<Packet> InitializeServerAsync(RemoteServerInfo serverEndPoint);
+
+        int EntityID { get;}
     }
 }

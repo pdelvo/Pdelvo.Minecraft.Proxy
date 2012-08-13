@@ -91,8 +91,9 @@ namespace Pdelvo.Minecraft.Proxy.Library.Plugins
                     foreach (var plugin in pluginAttributes)
                     {
                         var pl = (PluginBase)Activator.CreateInstance(plugin.PluginType);
-                         plugins.Add(pl);
-                         pl.Load(this);
+                        plugins.Add(pl);
+                        pl.Load(this);
+                        _logger.InfoFormat("Loaded plugin {0} in {1}", pl.Name, assembly.GetName().Name);
                     }
                 }
                 catch (Exception ex)

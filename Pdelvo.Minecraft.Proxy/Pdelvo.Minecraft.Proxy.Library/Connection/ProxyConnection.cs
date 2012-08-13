@@ -23,9 +23,12 @@ namespace Pdelvo.Minecraft.Proxy.Library.Connection
         ILog _logger;
         Random _random;
         bool _connectionClosed;
+        bool _quitMessagePosted;
+        bool _isMotDRequest;
 
         public string Username { get; protected set; }
         public string Host { get; protected set; }
+        public int EntityID { get; protected set; }
 
         public ProxyConnection(Socket networkSocket, ProxyServer server)
         {
@@ -64,6 +67,7 @@ namespace Pdelvo.Minecraft.Proxy.Library.Connection
 
                 if (listPing != null) // send motd
                 {
+                    _isMotDRequest = true;
                     var response = ProtocolHelper.BuildMotDString(_server.MotD, _server.ConnectedUsers, _server.MaxUsers);
                     await KickUserAsync(response);
                     return;
@@ -97,7 +101,6 @@ namespace Pdelvo.Minecraft.Proxy.Library.Connection
                         _server.RemoveConnection(this);
                         return;
                     }
-                    _logger.InfoFormat("{0} is connecting...", Username);
 
                     bool onlineMode = _server.OnlineModeEnabled(this);
                     string serverId = onlineMode ? Session.GetSessionHash() : "-";
@@ -168,11 +171,17 @@ namespace Pdelvo.Minecraft.Proxy.Library.Connection
                         }
                     }
 
-                    _logger.InfoFormat("{0} is connected", Username);
+                    _logger.InfoFormat("{0}[{1}] is connected", Username, _networkSocket.RemoteEndPoint);
 
                     _server.PromoteConnection(this);
 
                     var response = await InitializeServerAsync();
+
+                    var logonResponse = response as LogOnResponse;
+                    if (logonResponse != null)
+                    {
+                        EntityID = logonResponse.EntityId;
+                    }
 
                     await ClientEndPoint.SendPacketAsync(response);
 
@@ -225,7 +234,7 @@ namespace Pdelvo.Minecraft.Proxy.Library.Connection
                 await socket.ConnectTaskAsync(serverEndPoint.EndPoint);
 
 
-                server = new ProxyEndPoint(ServerRemoteInterface.Create(new NetworkStream(socket), ClientEndPoint.ProtocolVersion), ClientEndPoint.ProtocolVersion);
+                server = new ProxyEndPoint(ServerRemoteInterface.Create(new NetworkStream(socket), serverEndPoint.MinecraftVersion), serverEndPoint.MinecraftVersion);
 
                 var handshakeRequest = new HandshakeRequest
                 {
@@ -292,7 +301,11 @@ namespace Pdelvo.Minecraft.Proxy.Library.Connection
             _connectionClosed = true;
             ServerEndPoint.Close();
             ClientEndPoint.Close();
-            _logger.Error(Username + " lost connection");
+            if (!_quitMessagePosted)
+            {
+                _logger.Info(Username + " lost connection");
+                _quitMessagePosted = true;
+            }
             _server.RemoveConnection(this);
         }
 
@@ -324,6 +337,11 @@ namespace Pdelvo.Minecraft.Proxy.Library.Connection
             try
             {
                 await ClientEndPoint.SendPacketAsync(new DisconnectPacket { Reason = message });
+                if (!_quitMessagePosted &&!_isMotDRequest )
+                {
+                    _logger.Info(Username + " lost connection, message: " + message);
+                    _quitMessagePosted = true;
+                }
                 ClientEndPoint.Close();
                 if (ServerEndPoint != null)
                 {
