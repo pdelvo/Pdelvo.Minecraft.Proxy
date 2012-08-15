@@ -31,11 +31,10 @@ namespace Pdelvo.Minecraft.Proxy.Library
         public ProxyServer()
         {
             _logger = LogManager.GetLogger("Proxy Server");
+            ReadConfig();
             _pluginManager = new PluginManager(this);
-            _pluginManager.LoadPlugins();
             _openConnection = new SynchronizedCollection<ProxyConnection>();
             _connectedUsers = new SynchronizedCollection<ProxyConnection>();
-            ReadConfig();
         }
 
         public IPEndPoint LocalEndPoint { get; private set; }
