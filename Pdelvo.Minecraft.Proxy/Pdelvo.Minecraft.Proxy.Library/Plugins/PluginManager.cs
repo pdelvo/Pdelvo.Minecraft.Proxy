@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using log4net;
 using Pdelvo.Minecraft.Proxy.Library.Plugins.Events;
+
 namespace Pdelvo.Minecraft.Proxy.Library.Plugins
 {
     public class PluginManager
@@ -20,11 +21,7 @@ namespace Pdelvo.Minecraft.Proxy.Library.Plugins
 
         static PluginManager()
         {
-            ResolveEventHandler handler = (s, e) =>
-            {
-                return Assembly.LoadFile(e.Name);
-            };
-            AppDomain.CurrentDomain.AssemblyResolve += handler;
+            //AppDomain.CurrentDomain.AssemblyResolve += handler;
         }
 
         public PluginManager(IProxyServer server)
@@ -86,7 +83,7 @@ namespace Pdelvo.Minecraft.Proxy.Library.Plugins
                 List<PluginBase> plugins = new List<PluginBase>();
                 try
                 {
-                    Assembly assembly = Assembly.Load(Path.GetFullPath(item));
+                    Assembly assembly = Assembly.Load(File.ReadAllBytes(item));
                     var pluginAttributes = assembly.GetCustomAttributes<PluginAssemblyAttribute>();
                     foreach (var plugin in pluginAttributes)
                     {
