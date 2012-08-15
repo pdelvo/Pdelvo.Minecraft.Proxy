@@ -192,5 +192,29 @@ namespace Pdelvo.Minecraft.Proxy.Library
         {
             return OnlineMode; //TODO: Add plugin support
         }
+
+        public async Task<bool> CheckUserAccountAsync(ProxyConnection proxyConnection, string hash)
+        {
+            CheckAccountEventArgs args = new CheckAccountEventArgs(null, hash, proxyConnection);
+
+            await PluginManager.TriggerPlugin.OnUserAccountCheckAsync(args);
+
+            args.EnsureSuccess();
+
+            if (args.Result == null)
+            {
+                try
+                {
+                    return await UserAccountServices.CheckAccountAsync(proxyConnection.Username, hash);
+                }
+                catch (Exception ex)
+                {
+                    _logger.Error("minecraft.net not accessible", ex);
+
+                    return false;
+                }
+            }
+            return (bool)args.Result;
+        }
     }
 }

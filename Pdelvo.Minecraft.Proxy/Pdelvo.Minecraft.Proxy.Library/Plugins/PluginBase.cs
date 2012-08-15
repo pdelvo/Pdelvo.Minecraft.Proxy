@@ -26,5 +26,6 @@ namespace Pdelvo.Minecraft.Proxy.Library.Plugins
         public virtual void OnPlayerConnected(UserEventArgs args) { }
         public virtual void OnPlayerServerSelection(PluginResultEventArgs<RemoteServerInfo> args) { }
         public virtual void OnConnectionLost(UserEventArgs args) { }
+        public virtual Task OnUserAccountCheckAsync(CheckAccountEventArgs args) { return Task.FromResult(0) }
     }
 }

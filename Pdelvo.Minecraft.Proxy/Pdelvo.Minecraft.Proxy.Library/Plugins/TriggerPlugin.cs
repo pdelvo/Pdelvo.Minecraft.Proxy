@@ -93,5 +93,20 @@ namespace Pdelvo.Minecraft.Proxy.Library.Plugins
         {
             throw new NotSupportedException();
         }
+
+        public async Task OnUserAccountCheckAsync(CheckAccountEventArgs args)
+        {
+            foreach (var item in _triggerPlugins)
+            {
+                try
+                {
+                    await item.OnUserAccountCheckAsync(args);
+                }
+                catch (Exception ex)
+                {
+                    _logger.Warn("Could not pass event 'OnUserAccountCheckAsync' to " + item.Name, ex);
+                }
+            }
+        }
     }
 }

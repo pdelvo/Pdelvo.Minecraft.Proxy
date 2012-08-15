@@ -150,13 +150,12 @@ namespace Pdelvo.Minecraft.Proxy.Library.Connection
                         ClientEndPoint.ConnectionKey,
                         AsnKeyBuilder.PublicKeyToX509(_server.RSAKeyPair).GetBytes());
 
-                    //TODO: Add plugin support
                     if (onlineMode)
                     {
                         bool result;
                         try
                         {
-                            result = await UserAccountServices.CheckAccountAsync(Username, hash);
+                            result = await _server.CheckUserAccountAsync(this, hash);
                         }
                         catch (OperationCanceledException ex)
                         {
