@@ -108,5 +108,20 @@ namespace Pdelvo.Minecraft.Proxy.Library.Plugins
                 }
             }
         }
+
+        public override void IsOnlineModeEnabled(PluginResultEventArgs<bool?> args)
+        {
+            foreach (var item in _triggerPlugins)
+            {
+                try
+                {
+                    item.IsOnlineModeEnabled(args);
+                }
+                catch (Exception ex)
+                {
+                    _logger.Warn("Could not pass event 'IsOnlineModeEnabled' to " + item.Name, ex);
+                }
+            }
+        }
     }
 }

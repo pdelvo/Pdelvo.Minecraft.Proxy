@@ -189,7 +189,13 @@ namespace Pdelvo.Minecraft.Proxy.Library
 
         public bool OnlineModeEnabled(ProxyConnection proxyConnection)
         {
-            return OnlineMode; //TODO: Add plugin support
+            PluginResultEventArgs<bool?> args = new PluginResultEventArgs<bool?>(null, proxyConnection);
+            PluginManager.TriggerPlugin.IsOnlineModeEnabled(args);
+
+
+            if (args.Result == null)
+                return OnlineMode;
+            return (bool)args.Result;
         }
 
         public async Task<bool> CheckUserAccountAsync(ProxyConnection proxyConnection, string hash)
