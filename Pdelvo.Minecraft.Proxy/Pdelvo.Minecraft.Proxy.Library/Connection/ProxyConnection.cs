@@ -244,7 +244,14 @@ namespace Pdelvo.Minecraft.Proxy.Library.Connection
                 };
                 await server.SendPacketAsync(handshakeRequest);
 
-                var encryptionKeyRequest = await server.ReceivePacketAsync() as EncryptionKeyRequest;
+                Packet tp = await server.ReceivePacketAsync();
+
+                if (tp is DisconnectPacket)
+                {
+                    throw new OperationCanceledException((tp as DisconnectPacket).Reason);
+                }
+
+                var encryptionKeyRequest = tp as EncryptionKeyRequest;
 
                 server.ConnectionKey = ProtocolSecurity.GenerateAes128Key();
                 byte[] key = Pdelvo.Minecraft.Network.ProtocolSecurity.RSAEncrypt(server.ConnectionKey, encryptionKeyRequest.PublicKey.ToArray(), false);
