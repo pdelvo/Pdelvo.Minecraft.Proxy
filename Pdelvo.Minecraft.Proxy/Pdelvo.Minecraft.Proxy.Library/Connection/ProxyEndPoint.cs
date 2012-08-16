@@ -102,5 +102,8 @@ namespace Pdelvo.Minecraft.Proxy.Library.Connection
         {
             RemoteInterface.Shutdown();
         }
+
+
+        public System.Net.IPEndPoint RemoteEndPoint { get; internal set; }
     }
 }

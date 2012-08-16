@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using Pdelvo.Minecraft.Protocol.Packets;
@@ -24,5 +25,7 @@ namespace Pdelvo.Minecraft.Proxy.Library.Connection
         void AddCustomPacket<type>(byte id) where type : Packet, new();
         void SendPacketQueued(Packet packet);
         void Close();
+
+        IPEndPoint RemoteEndPoint { get; }
     }
 }

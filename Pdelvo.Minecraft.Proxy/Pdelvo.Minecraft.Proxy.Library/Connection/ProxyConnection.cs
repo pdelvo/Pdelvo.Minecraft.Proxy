@@ -11,6 +11,7 @@ using Pdelvo.Minecraft.Protocol.Helper;
 using Pdelvo.Minecraft.Protocol.Packets;
 using Pdelvo.Minecraft.Proxy.Library.Plugins.Events;
 using Pdelvo.Async.Extensions;
+using System.Net;
 
 namespace Pdelvo.Minecraft.Proxy.Library.Connection
 {
@@ -57,7 +58,7 @@ namespace Pdelvo.Minecraft.Proxy.Library.Connection
             {
                 var clientRemoteInterface = ClientRemoteInterface.Create(new NetworkStream(_networkSocket), 39);
                 _clientEndPoint = new ProxyEndPoint(clientRemoteInterface, clientRemoteInterface.EndPoint.Version);
-
+                _clientEndPoint.RemoteEndPoint = (IPEndPoint)_networkSocket.RemoteEndPoint;
 
                 var packet = await clientRemoteInterface.ReadPacketAsync();
 
@@ -234,7 +235,7 @@ namespace Pdelvo.Minecraft.Proxy.Library.Connection
 
 
                 server = new ProxyEndPoint(ServerRemoteInterface.Create(new NetworkStream(socket), serverEndPoint.MinecraftVersion), serverEndPoint.MinecraftVersion);
-
+                server.RemoteEndPoint = (IPEndPoint)socket.RemoteEndPoint;
                 var handshakeRequest = new HandshakeRequest
                 {
                     UserName = Username,
