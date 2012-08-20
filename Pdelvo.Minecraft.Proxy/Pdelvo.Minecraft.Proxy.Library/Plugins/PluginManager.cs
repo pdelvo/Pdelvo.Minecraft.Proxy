@@ -43,12 +43,14 @@ namespace Pdelvo.Minecraft.Proxy.Library.Plugins
             List<IPacketListener> removeListener = new List<IPacketListener>();
             foreach (var item in _packetListener)
             {
+                bool handled = args.Handled;
                 try
                 {
                     item.ClientPacketReceived(args);
                 }
                 catch (Exception ex)
                 {
+                    args.Handled = handled;//reset value if plugin failed
                     _logger.Error(string.Format("Could not pass client packet {0} to {1}, removing packet listener.", args.Packet, item), ex);
                     removeListener.Add(item);
                 }
@@ -61,12 +63,14 @@ namespace Pdelvo.Minecraft.Proxy.Library.Plugins
             List<IPacketListener> removeListener = new List<IPacketListener>();
             foreach (var item in _packetListener)
             {
+                bool handled = args.Handled;
                 try
                 {
                     item.ServerPacketReceived(args);
                 }
                 catch (Exception ex)
                 {
+                    args.Handled = handled;//reset value if plugin failed
                     _logger.Error(string.Format("Could not pass server packet {0} to {1}, removing packet listener.", args.Packet, item), ex);
                     removeListener.Add(item);
                 }
