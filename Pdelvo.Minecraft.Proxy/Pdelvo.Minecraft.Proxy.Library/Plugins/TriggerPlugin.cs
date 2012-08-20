@@ -123,5 +123,20 @@ namespace Pdelvo.Minecraft.Proxy.Library.Plugins
                 }
             }
         }
+
+        public void GetServerVersion(PluginResultEventArgs<RemoteServerInfo> args)
+        {
+            foreach (var item in _triggerPlugins)
+            {
+                try
+                {
+                    item.GetServerVersion(args);
+                }
+                catch (Exception ex)
+                {
+                    _logger.Warn("Could not pass event 'GetServerVersion' to " + item.Name, ex);
+                }
+            }
+        }
     }
 }

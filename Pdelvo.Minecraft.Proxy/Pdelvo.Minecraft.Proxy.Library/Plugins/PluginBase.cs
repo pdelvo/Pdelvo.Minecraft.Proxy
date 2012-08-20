@@ -28,5 +28,6 @@ namespace Pdelvo.Minecraft.Proxy.Library.Plugins
         public virtual void OnConnectionLost(UserEventArgs args) { }
         public virtual Task OnUserAccountCheckAsync(CheckAccountEventArgs args) { return Task.FromResult(0); }
         public virtual void IsOnlineModeEnabled(PluginResultEventArgs<bool?> args) { }
+        public virtual void GetServerVersion(PluginResultEventArgs<RemoteServerInfo> args) { }
     }
 }

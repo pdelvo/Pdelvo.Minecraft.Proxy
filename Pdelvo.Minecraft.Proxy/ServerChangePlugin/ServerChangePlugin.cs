@@ -65,7 +65,7 @@ namespace ServerChangePlugin
     {
         public ServerChangePlugin Plugin { get; set; }
 
-        Regex endPointRegex = new Regex("(?<ip>[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3})\\:(?<port>[0-9]+)"); //currently supports ipv4
+        Regex endPointRegex = new Regex("(?<ip>[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3})\\:(?<port>[0-9]+)(\\;(?<version>[0-9]*))?"); //currently supports ipv4
 
         public ServerChangePacketListener(ServerChangePlugin plugin)
         {
@@ -86,8 +86,11 @@ namespace ServerChangePlugin
                 if (result.Success)
                 {
                     e.Handled = true;
+                    var version = 0;
+                    if (result.Groups["version"].Success)
+                        version = int.Parse(result.Groups["version"].Value);
                     RemoteServerInfo info = new RemoteServerInfo(result.ToString(), 
-                        new IPEndPoint(IPAddress.Parse(result.Groups["ip"].Value), int.Parse(result.Groups["port"].Value)), ProtocolInformation.MaxSupportedServerVersion);
+                        new IPEndPoint(IPAddress.Parse(result.Groups["ip"].Value), int.Parse(result.Groups["port"].Value)), version);
 
                     var connection = e.Connection;
 

@@ -179,7 +179,7 @@ namespace Pdelvo.Minecraft.Proxy.Library
             var server = settings.Server.OfType<ServerElement>().Where(m => m.IsDefault || (m.DnsName != null && proxyConnection.Host.StartsWith(m.DnsName))).OrderBy(m => m.IsDefault);
 
             var possibleResult = server.FirstOrDefault();
-            var result = possibleResult == null ? null :new RemoteServerInfo(possibleResult.Name, Extensions.ParseEndPoint(possibleResult.EndPoint), possibleResult.MinecraftVersion);
+            var result = possibleResult == null ? null : new RemoteServerInfo(possibleResult.Name, Extensions.ParseEndPoint(possibleResult.EndPoint), possibleResult.MinecraftVersion);
 
             PluginResultEventArgs<RemoteServerInfo> args = new PluginResultEventArgs<RemoteServerInfo>(result, proxyConnection);
             PluginManager.TriggerPlugin.OnPlayerServerSelection(args);
@@ -220,6 +220,30 @@ namespace Pdelvo.Minecraft.Proxy.Library
                 }
             }
             return (bool)args.Result;
+        }
+
+        public void GetServerVersion(ProxyConnection proxyConnection, RemoteServerInfo serverEndPoint)
+        {
+            PluginResultEventArgs<RemoteServerInfo> args = new PluginResultEventArgs<RemoteServerInfo>(serverEndPoint, proxyConnection);
+
+            PluginManager.TriggerPlugin.GetServerVersion(args);
+
+            args.EnsureSuccess();
+
+            if (serverEndPoint.MinecraftVersion == 0)
+            {
+                //Look up configuration
+
+                var settings = ProxyConfigurationSection.Settings;
+
+                var serverList = settings.Server.OfType<ServerElement>().Where(m => m.EndPoint == serverEndPoint.EndPoint.ToString());
+
+                var server = serverList.FirstOrDefault();
+
+                if (server != null) serverEndPoint.MinecraftVersion = server.MinecraftVersion;
+                //Use default
+                else serverEndPoint.MinecraftVersion = Pdelvo.Minecraft.Protocol.Helper.ProtocolInformation.MaxSupportedServerVersion;
+            }
         }
     }
 }

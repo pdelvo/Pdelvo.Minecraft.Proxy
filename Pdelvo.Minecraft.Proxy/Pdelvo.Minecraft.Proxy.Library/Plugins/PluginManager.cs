@@ -48,6 +48,10 @@ namespace Pdelvo.Minecraft.Proxy.Library.Plugins
                 {
                     item.ClientPacketReceived(args);
                 }
+                catch (OperationCanceledException)
+                {
+                    throw;
+                }
                 catch (Exception ex)
                 {
                     args.Handled = handled;//reset value if plugin failed
@@ -67,6 +71,10 @@ namespace Pdelvo.Minecraft.Proxy.Library.Plugins
                 try
                 {
                     item.ServerPacketReceived(args);
+                }
+                catch (OperationCanceledException)
+                {
+                    throw;
                 }
                 catch (Exception ex)
                 {

@@ -9,9 +9,9 @@ namespace Pdelvo.Minecraft.Proxy.Library
 {
     public class RemoteServerInfo
     {
-        public string Name { get; private set; }
-        public IPEndPoint EndPoint { get; private set; }
-        public int MinecraftVersion { get; private set; }
+        public string Name { get; set; }
+        public IPEndPoint EndPoint { get; set; }
+        public int MinecraftVersion { get; set; }
 
         public RemoteServerInfo(string name, IPEndPoint endPoint, int minecraftVersion)
         {

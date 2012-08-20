@@ -226,6 +226,9 @@ namespace Pdelvo.Minecraft.Proxy.Library.Connection
                 UnregisterServer();
                 _serverEndPoint = null;
 
+                if(serverEndPoint.MinecraftVersion == 0)
+                _server.GetServerVersion(this, serverEndPoint);
+
                 var socket = new Socket(serverEndPoint.EndPoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp)
                 {
                     ReceiveBufferSize = 1024 * 1024
@@ -321,22 +324,42 @@ namespace Pdelvo.Minecraft.Proxy.Library.Connection
             OnConnectionLost();
         }
 
-        void ClientPacketReceived(object sender, PacketReceivedEventArgs args)
+        async void ClientPacketReceived(object sender, PacketReceivedEventArgs args)
         {
-            args.Connection = this;
-            _server.PluginManager.ApplyClientPacket(args);
+            string kickMessage = null;
+            try
+            {
+                args.Connection = this;
+                _server.PluginManager.ApplyClientPacket(args);
 
-            if (!args.Handled)
-                ServerEndPoint.SendPacketQueued(args.Packet);
+                if (!args.Handled)
+                    ServerEndPoint.SendPacketQueued(args.Packet);
+            }
+            catch (OperationCanceledException ex)
+            {
+                kickMessage = ex.Message;
+            }
+            if (kickMessage != null)
+                await KickUserAsync(kickMessage);
         }
 
-        void ServerPacketReceived(object sender, PacketReceivedEventArgs args)
+        async void ServerPacketReceived(object sender, PacketReceivedEventArgs args)
         {
-            args.Connection = this;
-            _server.PluginManager.ApplyServerPacket(args);
+            string kickMessage = null;
+            try
+            {
+                args.Connection = this;
+                _server.PluginManager.ApplyServerPacket(args);
 
-            if (!args.Handled)
-                ClientEndPoint.SendPacketQueued(args.Packet);
+                if (!args.Handled)
+                    ClientEndPoint.SendPacketQueued(args.Packet);
+            }
+            catch (OperationCanceledException ex)
+            {
+                kickMessage = ex.Message;
+            }
+            if (kickMessage != null)
+                await KickUserAsync(kickMessage);
         }
 
         private async Task KickUserAsync(string message)
