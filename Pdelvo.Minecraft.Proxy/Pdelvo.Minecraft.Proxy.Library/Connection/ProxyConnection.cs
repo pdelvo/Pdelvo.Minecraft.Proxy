@@ -196,7 +196,8 @@ namespace Pdelvo.Minecraft.Proxy.Library.Connection
             catch (Exception ex)
             {
                 success = false;
-                _logger.Error("Failed to login a Client", ex);
+                _quitMessagePosted = true;
+                _logger.Error(string.Format("Failed to login a client ({0})", Username), ex);
             }
             if (!success)
                 await KickUserAsync("Failed to login");
@@ -205,13 +206,33 @@ namespace Pdelvo.Minecraft.Proxy.Library.Connection
         private async Task<Packet> InitializeServerAsync()
         {
             bool success = true;
+            RemoteServerInfo info = null;
             try
             {
-                return await InitializeServerAsync(_server.GetServerEndPoint(this));
+                info = _server.GetServerEndPoint(this);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                _quitMessagePosted = true;
+
+                _logger.Error("Could not get remote server info", ex);
+
                 success = false;
+            }
+            if (success)
+            {
+                try
+                {
+                    return await InitializeServerAsync(info);
+                }
+                catch (Exception ex)
+                {
+                    _quitMessagePosted = true;
+
+                    _logger.Error(string.Format("Could not connect to remote server ({0})", info.EndPoint), ex);
+
+                    success = false;
+                }
             }
             if (!success)
                 await KickUserAsync("Could not connect to remote server");
@@ -277,6 +298,7 @@ namespace Pdelvo.Minecraft.Proxy.Library.Connection
             }
             catch (Exception ex)
             {
+                _quitMessagePosted = true;
                 _logger.Error("Could not connect to remote server", ex);
                 throw;
             }
