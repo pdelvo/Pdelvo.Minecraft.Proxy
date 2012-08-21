@@ -8,18 +8,17 @@ using System.Threading.Tasks;
 
 namespace Pdelvo.Minecraft.Proxy.Library
 {
+    /// <summary>
+    /// Provides functionality to generate connection session hashes which can be used within the minecraft login process
+    /// </summary>
     public static class Session
     {
-        /// <summary>
-        /// 
-        /// </summary>
         private static readonly Random Random = new Random();
 
         /// <summary>
-        /// Gets the session hash.
+        /// Returns a valid minecraft session hash
         /// </summary>
-        /// <returns></returns>
-        /// <remarks></remarks>
+        /// <returns>A valid minecraft session hash</returns>
         public static string GetSessionHash()
         {
             var buffer = new byte[4];

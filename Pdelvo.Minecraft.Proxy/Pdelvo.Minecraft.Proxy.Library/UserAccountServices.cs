@@ -7,8 +7,17 @@ using System.Threading.Tasks;
 
 namespace Pdelvo.Minecraft.Proxy.Library
 {
+    /// <summary>
+    /// Provides access to the minecraft session apis to validate user accounts
+    /// </summary>
     public static class UserAccountServices
     {
+        /// <summary>
+        /// Checks if a user account is valid  using the user name and the connection Hash
+        /// </summary>
+        /// <param name="username">The name of the user</param>
+        /// <param name="hash">The calculated connection hash. See http://wiki.vg/Authentication#Server_operation for more information</param>
+        /// <returns>A task representing the result of this operation. true if the user account is valid, otherwise false</returns>
         public static async Task<bool> CheckAccountAsync(string username, string hash)
         {
             try

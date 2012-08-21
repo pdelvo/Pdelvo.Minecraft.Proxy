@@ -7,11 +7,17 @@ using System.Threading.Tasks;
 
 namespace Pdelvo.Minecraft.Proxy.Library.Configuration
 {
+    /// <summary>
+    /// A xml configuration section to configure the proxy server
+    /// </summary>
     public class ProxyConfigurationSection : ConfigurationSection
     {
         private static ProxyConfigurationSection settings
               = ConfigurationManager.GetSection("proxy") as ProxyConfigurationSection;
 
+        /// <summary>
+        /// A singleton to access the current settings
+        /// </summary>
     public static ProxyConfigurationSection Settings
         {
             get
@@ -20,6 +26,9 @@ namespace Pdelvo.Minecraft.Proxy.Library.Configuration
             }
         }
 
+        /// <summary>
+        /// The message of the day of the server
+        /// </summary>
         [ConfigurationProperty("motd", DefaultValue = "Proxy Server", IsRequired = false)]
         public string Motd
         {
@@ -33,6 +42,9 @@ namespace Pdelvo.Minecraft.Proxy.Library.Configuration
             }
         }
 
+        /// <summary>
+        /// The local end point the proxy server should bind to
+        /// </summary>
         [ConfigurationProperty("localEndPoint", DefaultValue = "0.0.0.0:25565", IsRequired = false)]
         public string LocalEndPoint
         {
@@ -46,6 +58,9 @@ namespace Pdelvo.Minecraft.Proxy.Library.Configuration
             }
         }
 
+        /// <summary>
+        /// the maximum users the proxy server should allow to join
+        /// </summary>
         [ConfigurationProperty("maxPlayers", DefaultValue = "100", IsRequired = false)]
         public int MaxPlayers
         {
@@ -59,6 +74,9 @@ namespace Pdelvo.Minecraft.Proxy.Library.Configuration
             }
         }
 
+        /// <summary>
+        /// true if the server should use the online mode, otherwise false
+        /// </summary>
         [ConfigurationProperty("onlineMode", DefaultValue = true, IsRequired = false)]
         public bool OnlineMode
         {
@@ -72,6 +90,9 @@ namespace Pdelvo.Minecraft.Proxy.Library.Configuration
             }
         }
 
+        /// <summary>
+        /// The list of the backend servers
+        /// </summary>
         [ConfigurationProperty("server", IsDefaultCollection = false)]
         public ServerCollection Server
         {
@@ -85,12 +106,15 @@ namespace Pdelvo.Minecraft.Proxy.Library.Configuration
             }
         }
     }
+
+    /// <summary>
+    /// The collection of minecraft backend servers
+    /// </summary>
     public class ServerCollection : ConfigurationElementCollection
     {
-        public ServerCollection()
-        {
-        }
-
+        /// <summary>
+        /// The type of the collection, always AddRemoveClearMap
+        /// </summary>
         public override
             ConfigurationElementCollectionType CollectionType
         {
@@ -101,11 +125,22 @@ namespace Pdelvo.Minecraft.Proxy.Library.Configuration
             }
         }
 
+        /// <summary>
+        /// Creates a new empty ServerElement (same as using the default constructor)
+        /// </summary>
+        /// <returns>A new instance of the ServerElement class</returns>
         protected override ConfigurationElement CreateNewElement()
         {
             return new ServerElement();
         }
 
+
+
+        /// <summary>
+        /// cCeates a new empty ServerElement with the specific name
+        /// </summary>
+        /// <param name="elementName">The name of the backend server</param>
+        /// <returns>A new instance of the ServerElement class</returns>
         protected override
             ConfigurationElement CreateNewElement(
             string elementName)
@@ -113,9 +148,9 @@ namespace Pdelvo.Minecraft.Proxy.Library.Configuration
             return new ServerElement { Name = elementName };
         }
 
-
-
-
+        /// <summary>
+        /// The name of the add element xml node. Default is 'add'
+        /// </summary>
         public new string AddElementName
         {
             get
@@ -125,8 +160,9 @@ namespace Pdelvo.Minecraft.Proxy.Library.Configuration
             { base.AddElementName = value; }
         }
 
-
-
+        /// <summary>
+        /// The name of the clear element xml node. Default is 'clear'
+        /// </summary>
         public new string ClearElementName
         {
             get
@@ -140,7 +176,9 @@ namespace Pdelvo.Minecraft.Proxy.Library.Configuration
             }
         }
 
-
+        /// <summary>
+        /// The name of the remove element xml node. Default is 'remove'
+        /// </summary>
         public new string RemoveElementName
         {
             get
@@ -149,8 +187,9 @@ namespace Pdelvo.Minecraft.Proxy.Library.Configuration
             }
         }
 
-
-
+        /// <summary>
+        /// Get the current number of elements
+        /// </summary>
         public new int Count
         {
 
@@ -160,8 +199,11 @@ namespace Pdelvo.Minecraft.Proxy.Library.Configuration
             }
         }
 
-
-
+        /// <summary>
+        /// Returns the ServerElement at the specific position
+        /// </summary>
+        /// <param name="index">The position of the ServerElement in this collection</param>
+        /// <returns>The ServerElement at index</returns>
         public ServerElement this[int index]
         {
             get
@@ -178,28 +220,45 @@ namespace Pdelvo.Minecraft.Proxy.Library.Configuration
             }
         }
 
-
-        new public ServerElement this[string Name]
+        /// <summary>
+        /// Returns the ServerElement with the specific name
+        /// </summary>
+        /// <param name="name">The name of the ServerElement</param>
+        /// <returns>The ServerElement with the specific name</returns>
+        new public ServerElement this[string name]
         {
             get
             {
-                return (ServerElement)BaseGet(Name);
+                return (ServerElement)BaseGet(name);
             }
         }
 
-
-        public int IndexOf(ServerElement url)
+        /// <summary>
+        /// Returns the position of the specific ServerElement
+        /// </summary>
+        /// <param name="element">The element whish should be looked up</param>
+        /// <returns>The index of the element</returns>
+        public int IndexOf(ServerElement element)
         {
-            return BaseIndexOf(url);
+            return BaseIndexOf(element);
         }
 
-        public void Add(ServerElement url)
+        /// <summary>
+        /// Add a new element to the collection. If there is already a element with the same name in the collection it will be overridden
+        /// </summary>
+        /// <param name="element"></param>
+        public void Add(ServerElement element)
         {
-            BaseAdd(url);
+            BaseAdd(element);
 
             // Add custom code here.
         }
 
+
+        /// <summary>
+        /// Add a new element to the collection. If there is already a element with the same name in the collection it will be overridden
+        /// </summary>
+        /// <param name="element"></param>
         protected override void
             BaseAdd(ConfigurationElement element)
         {
@@ -207,35 +266,63 @@ namespace Pdelvo.Minecraft.Proxy.Library.Configuration
             // Add custom code here.
         }
 
-        public void Remove(ServerElement url)
+        /// <summary>
+        /// Remove a element from the collection
+        /// </summary>
+        /// <param name="element">The element which should be removed</param>
+        public void Remove(ServerElement element)
         {
-            if (BaseIndexOf(url) >= 0)
-                BaseRemove(url.Name);
+            if (BaseIndexOf(element) >= 0)
+                BaseRemove(element.Name);
         }
 
+        /// <summary>
+        /// Remove a element at the specific position
+        /// </summary>
+        /// <param name="index">The position of the item</param>
         public void RemoveAt(int index)
         {
             BaseRemoveAt(index);
         }
 
+        /// <summary>
+        /// Remove a item with the specific name
+        /// </summary>
+        /// <param name="name">The name of the item</param>
         public void Remove(string name)
         {
             BaseRemove(name);
         }
 
+        /// <summary>
+        /// Removes all items from the collection
+        /// </summary>
         public void Clear()
         {
             BaseClear();
             // Add custom code here.
         }
-        protected override Object
-          GetElementKey(ConfigurationElement element)
+
+        /// <summary>
+        /// Get the key = the name of a item
+        /// </summary>
+        /// <param name="element"></param>
+        /// <returns></returns>
+        protected override Object GetElementKey(ConfigurationElement element)
         {
             return ((ServerElement)element).Name;
         }
     }
+
+    /// <summary>
+    /// A element in the backend server list
+    /// </summary>
     public class ServerElement : ConfigurationElement
     {
+
+        /// <summary>
+        /// The name of the server
+        /// </summary>
         [ConfigurationProperty("name", IsRequired = true)]
         public string Name
         {
@@ -249,6 +336,9 @@ namespace Pdelvo.Minecraft.Proxy.Library.Configuration
             }
         }
 
+        /// <summary>
+        /// The remote end point of the server
+        /// </summary>
         [ConfigurationProperty("endPoint", IsRequired = true)]
         public string EndPoint
         {
@@ -262,6 +352,9 @@ namespace Pdelvo.Minecraft.Proxy.Library.Configuration
             }
         }
 
+        /// <summary>
+        /// true if the server is the default server a client should connect to, otherwise false
+        /// </summary>
         [ConfigurationProperty("isDefault", DefaultValue = false)]
         public bool IsDefault
         {
@@ -275,6 +368,9 @@ namespace Pdelvo.Minecraft.Proxy.Library.Configuration
             }
         }
 
+        /// <summary>
+        /// The DNS name of the server. With that the server can provide different servers for different sub domains, or top level domains
+        /// </summary>
         [ConfigurationProperty("dnsName", DefaultValue = null)]
         public string DnsName
         {
@@ -288,6 +384,9 @@ namespace Pdelvo.Minecraft.Proxy.Library.Configuration
             }
         }
 
+        /// <summary>
+        /// The minecraft version of the server. 1.3 is currently minecraft version 39
+        /// </summary>
         [ConfigurationProperty("minecraftVersion", DefaultValue = null, IsRequired = true)]
         public int MinecraftVersion
         {
