@@ -94,7 +94,7 @@ namespace Pdelvo.Minecraft.Proxy.Library.Plugins
             throw new NotSupportedException();
         }
 
-        public async Task OnUserAccountCheckAsync(CheckAccountEventArgs args)
+        public override async Task OnUserAccountCheckAsync(CheckAccountEventArgs args)
         {
             foreach (var item in _triggerPlugins)
             {
@@ -124,7 +124,7 @@ namespace Pdelvo.Minecraft.Proxy.Library.Plugins
             }
         }
 
-        public void GetServerVersion(PluginResultEventArgs<RemoteServerInfo> args)
+        public override void GetServerVersion(PluginResultEventArgs<RemoteServerInfo> args)
         {
             foreach (var item in _triggerPlugins)
             {
