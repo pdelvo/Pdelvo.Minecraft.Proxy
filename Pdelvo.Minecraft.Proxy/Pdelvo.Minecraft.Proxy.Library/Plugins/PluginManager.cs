@@ -10,6 +10,9 @@ using Pdelvo.Minecraft.Proxy.Library.Plugins.Events;
 
 namespace Pdelvo.Minecraft.Proxy.Library.Plugins
 {
+    /// <summary>
+    /// The main interface between the proxy server and the loaded plugins
+    /// </summary>
     public class PluginManager
     {
         List<PluginBase> _plugins = new List<PluginBase>();
@@ -17,6 +20,9 @@ namespace Pdelvo.Minecraft.Proxy.Library.Plugins
 
         ILog _logger;
 
+        /// <summary>
+        /// The proxy server this plugin manager belongs to
+        /// </summary>
         public IProxyServer Server { get; private set; }
 
         static PluginManager()
@@ -24,6 +30,10 @@ namespace Pdelvo.Minecraft.Proxy.Library.Plugins
             //AppDomain.CurrentDomain.AssemblyResolve += handler;
         }
 
+        /// <summary>
+        /// Creates a new instance of the plugin manager class
+        /// </summary>
+        /// <param name="server">the proxy server this plugin manager belongs to</param>
         public PluginManager(IProxyServer server)
         {
             Server = server;
@@ -33,11 +43,19 @@ namespace Pdelvo.Minecraft.Proxy.Library.Plugins
             _plugins.AddRange(LoadPlugins());
         }
 
+        /// <summary>
+        /// Registers a new packet listener. The packet listener will be called when a packet should be redirected from one end point to the other
+        /// </summary>
+        /// <param name="listener">The packet listener which should be called on incoming packets</param>
         public void RegisterPacketListener(IPacketListener listener)
         {
             _packetListener.Add(listener);
         }
 
+        /// <summary>
+        /// Passed a packet sent by a client to the packet listeners
+        /// </summary>
+        /// <param name="args">A PacketReceivedEventArgs object containing information about the packet</param>
         public void ApplyClientPacket(PacketReceivedEventArgs args)
         {
             List<IPacketListener> removeListener = new List<IPacketListener>();
@@ -62,6 +80,10 @@ namespace Pdelvo.Minecraft.Proxy.Library.Plugins
             _packetListener.RemoveAll(a => removeListener.Contains(a));
         }
 
+        /// <summary>
+        /// Passed a packet sent by a server to the packet listeners
+        /// </summary>
+        /// <param name="args">A PacketReceivedEventArgs object containing information about the packet</param>
         public void ApplyServerPacket(PacketReceivedEventArgs args)
         {
             List<IPacketListener> removeListener = new List<IPacketListener>();
@@ -86,7 +108,7 @@ namespace Pdelvo.Minecraft.Proxy.Library.Plugins
             _packetListener.RemoveAll(a => removeListener.Contains(a));
         }
 
-        public IEnumerable<PluginBase> LoadPlugins()
+        private IEnumerable<PluginBase> LoadPlugins()
         {
             string pluginDirectory = "plugins/";
             Directory.CreateDirectory(pluginDirectory);
