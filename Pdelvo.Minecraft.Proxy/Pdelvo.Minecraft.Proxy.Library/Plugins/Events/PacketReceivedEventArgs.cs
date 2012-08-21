@@ -8,6 +8,9 @@ using Pdelvo.Minecraft.Proxy.Library.Connection;
 
 namespace Pdelvo.Minecraft.Proxy.Library.Plugins.Events
 {
+    /// <summary>
+    /// Event data about a received packet
+    /// </summary>
     public class PacketReceivedEventArgs : EventArgs
     {
         /// <summary>
@@ -28,8 +31,8 @@ namespace Pdelvo.Minecraft.Proxy.Library.Plugins.Events
         /// <summary>
         /// Creates a new instance of the <see cref="PacketReceivedEventArgs"/> class
         /// </summary>
-        /// <param name="packet"></param>
-        /// <param name="connection"></param>
+        /// <param name="packet">The packet which should be redirected</param>
+        /// <param name="connection">The connection this packet belongs to</param>
         public PacketReceivedEventArgs(Packet packet, IProxyConnection connection)
         {
             Packet = packet;
@@ -39,8 +42,7 @@ namespace Pdelvo.Minecraft.Proxy.Library.Plugins.Events
         /// <summary>
         /// Creates a new instance of the <see cref="PacketReceivedEventArgs"/> class
         /// </summary>
-        /// <param name="packet"></param>
-        /// <param name="connection"></param>
+        /// <param name="packet">The packet which should be redirected</param>
         public PacketReceivedEventArgs(Packet packet)
         {
             Packet = packet;

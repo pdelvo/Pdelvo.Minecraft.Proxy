@@ -6,11 +6,25 @@ using System.Threading.Tasks;
 
 namespace Pdelvo.Minecraft.Proxy.Library.Plugins.Events
 {
+    /// <summary>
+    /// A base class for cancelable EventArgs
+    /// </summary>
     public class CancelEventArgs : EventArgs
     {
+        /// <summary>
+        /// true if this operation is canceled, otherwise false
+        /// </summary>
         public bool Canceled { get; protected set; }
+
+        /// <summary>
+        /// The message why this operation is canceled. Null if it is not canceled
+        /// </summary>
         public string CancelMessage { get; protected set; }
 
+        /// <summary>
+        /// Cancel this operation with a specific message
+        /// </summary>
+        /// <param name="message">The reason why this operation is canceled</param>
         public virtual void SetCanceled(string message)
         {
             Canceled = true;
