@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
+using System.Reflection;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
 using log4net;
@@ -41,6 +42,9 @@ namespace Pdelvo.Minecraft.Proxy.Library
         public ProxyServer()
         {
             _logger = LogManager.GetLogger("Proxy Server");
+
+            _logger.Info("Starting MineProxy.Net " + Assembly.GetExecutingAssembly().GetName().Version);
+
             ReadConfig();
             _pluginManager = new PluginManager(this);
             _openConnection = new SynchronizedCollection<ProxyConnection>();

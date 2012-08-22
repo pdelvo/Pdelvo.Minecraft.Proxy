@@ -1,4 +1,4 @@
-#Minecraft 1.3.1 Proxy#
+#MineProxy.Net - A .net Minecraft Proxy#
 
 This is the project page of my Minecraft Proxy. It isdesigned to support as many different versions of minecraft as possible with extended compatibility features.
 
