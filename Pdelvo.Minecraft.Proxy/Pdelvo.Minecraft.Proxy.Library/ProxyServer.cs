@@ -15,6 +15,9 @@ using Pdelvo.Minecraft.Proxy.Library.Plugins.Events;
 
 namespace Pdelvo.Minecraft.Proxy.Library
 {
+    /// <summary>
+    /// The base implementation of a proxy server.
+    /// </summary>
     public class ProxyServer : IProxyServer
     {
         bool _listening;
@@ -26,8 +29,15 @@ namespace Pdelvo.Minecraft.Proxy.Library
         ILog _logger;
         internal RSAParameters RSAKeyPair { get; private set; }
         internal RSACryptoServiceProvider RSACryptoServiceProvider { get; private set; }
+
+        /// <summary>
+        /// True if the proxy server accepts new clients, otherwise false.
+        /// </summary>
         public bool AcceptingNewClients { get { return _acceptingNewClients; } }
 
+        /// <summary>
+        /// Creates a new instance of the ProxyServer class.
+        /// </summary>
         public ProxyServer()
         {
             _logger = LogManager.GetLogger("Proxy Server");
@@ -37,22 +47,45 @@ namespace Pdelvo.Minecraft.Proxy.Library
             _connectedUsers = new SynchronizedCollection<ProxyConnection>();
         }
 
+        /// <summary>
+        /// Get the local end point of this proxy server where it is listening for new clients.
+        /// </summary>
         public IPEndPoint LocalEndPoint { get; private set; }
 
+        /// <summary>
+        /// Get the number of connected proxy users.
+        /// </summary>
         public int ConnectedUsers
         {
             get { return _connectedUsers.Count; }
         }
 
+        /// <summary>
+        /// Get the amount of users who can connect at the same time.
+        /// </summary>
         public int MaxUsers { get; set; }
+
+        /// <summary>
+        /// Get or set if the proxy server should verify users.
+        /// </summary>
         public bool OnlineMode { get; set; }
+
+        /// <summary>
+        /// Get or set the current message of the day.
+        /// </summary>
         public string MotD { get; set; }
 
+        /// <summary>
+        /// Get if the underlying socket is listening for new users.
+        /// </summary>
         public bool Listening
         {
             get { return _listening; }
         }
 
+        /// <summary>
+        /// Start listening for new users.
+        /// </summary>
         public void Start()
         {
             if (_listening) throw new InvalidOperationException("Proxy server is running");
@@ -126,6 +159,9 @@ namespace Pdelvo.Minecraft.Proxy.Library
             }
         }
 
+        /// <summary>
+        /// Get a collection of open connections
+        /// </summary>
         public IEnumerable<IProxyConnection> OpenConnections
         {
             get
@@ -134,6 +170,10 @@ namespace Pdelvo.Minecraft.Proxy.Library
             }
         }
 
+        /// <summary>
+        /// Close all active connections and free resources asynchronously
+        /// </summary>
+        /// <returns>A task which can be used to observe the closing process</returns>
         public async Task StopAsync()
         {
             if (!_listening) return;
@@ -145,11 +185,17 @@ namespace Pdelvo.Minecraft.Proxy.Library
             _listeningSocket.Dispose();
         }
 
+        /// <summary>
+        /// Close all active connections and free resources synchronously
+        /// </summary>
         public virtual void Dispose()
         {
             StopAsync().Wait();
         }
 
+        /// <summary>
+        /// Get the current PluginManager
+        /// </summary>
         public PluginManager PluginManager
         {
             get { return _pluginManager; }
@@ -171,6 +217,11 @@ namespace Pdelvo.Minecraft.Proxy.Library
         }
 
 
+        /// <summary>
+        /// Get a new server end point for a given proxy connection to.
+        /// </summary>
+        /// <param name="proxyConnection">The proxy connection which need a new server connection.</param>
+        /// <returns>A RemoteServerInfo object which contains important information about the new backend server.</returns>
         public RemoteServerInfo GetServerEndPoint(IProxyConnection proxyConnection)
         {
 
@@ -187,6 +238,11 @@ namespace Pdelvo.Minecraft.Proxy.Library
             return args.Result;
         }
 
+        /// <summary>
+        /// Returns true if the online mode is enabled for a specific user or not.
+        /// </summary>
+        /// <param name="proxyConnection">The proxy connection which should be checked</param>
+        /// <returns>true if the online mode is enabled, otherwise false.</returns>
         public bool OnlineModeEnabled(ProxyConnection proxyConnection)
         {
             PluginResultEventArgs<bool?> args = new PluginResultEventArgs<bool?>(null, proxyConnection);
@@ -198,6 +254,12 @@ namespace Pdelvo.Minecraft.Proxy.Library
             return (bool)args.Result;
         }
 
+        /// <summary>
+        /// checks if a user account is valid using plugins and the minecraft.net services
+        /// </summary>
+        /// <param name="proxyConnection">The proxy server which should be checked.</param>
+        /// <param name="hash">The 'serverId' hash</param>
+        /// <returns>true if the user account is okay, otherwise false</returns>
         public async Task<bool> CheckUserAccountAsync(ProxyConnection proxyConnection, string hash)
         {
             CheckAccountEventArgs args = new CheckAccountEventArgs(null, hash, proxyConnection);
@@ -222,6 +284,11 @@ namespace Pdelvo.Minecraft.Proxy.Library
             return (bool)args.Result;
         }
 
+        /// <summary>
+        /// Get the minecraft protocol server of a given minecraft server.
+        /// </summary>
+        /// <param name="proxyConnection">The connection this server relates to.</param>
+        /// <param name="serverEndPoint">The current version of the Remote server info.</param>
         public void GetServerVersion(ProxyConnection proxyConnection, RemoteServerInfo serverEndPoint)
         {
             PluginResultEventArgs<RemoteServerInfo> args = new PluginResultEventArgs<RemoteServerInfo>(serverEndPoint, proxyConnection);

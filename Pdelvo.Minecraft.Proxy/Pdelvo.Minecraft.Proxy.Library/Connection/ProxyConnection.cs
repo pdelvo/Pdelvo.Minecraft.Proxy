@@ -15,6 +15,9 @@ using System.Net;
 
 namespace Pdelvo.Minecraft.Proxy.Library.Connection
 {
+    /// <summary>
+    /// The basic implementation of the IProxyConnection interface
+    /// </summary>
     public class ProxyConnection : IProxyConnection
     {
         Socket _networkSocket;
@@ -27,10 +30,27 @@ namespace Pdelvo.Minecraft.Proxy.Library.Connection
         bool _quitMessagePosted;
         bool _isMotDRequest;
 
+        /// <summary>
+        /// Get the username of the current user
+        /// </summary>
         public string Username { get; protected set; }
+
+        /// <summary>
+        /// Get the Hostname and port the user used to connect to the server
+        /// </summary>
         public string Host { get; protected set; }
+
+        /// <summary>
+        /// Get the current entity id of the user
+        /// </summary>
         public int EntityID { get; protected set; }
 
+        /// <summary>
+        /// Creates a new instance of the ProxyConnection class with the remote socket of the client 
+        /// and the ProxyServer this connection should belong to.
+        /// </summary>
+        /// <param name="networkSocket">The network socket of the network client</param>
+        /// <param name="server">The proxy server this connection belongs to</param>
         public ProxyConnection(Socket networkSocket, ProxyServer server)
         {
             _logger = LogManager.GetLogger("Proxy Connection");
@@ -39,16 +59,26 @@ namespace Pdelvo.Minecraft.Proxy.Library.Connection
             _random = new Random();
         }
 
+        /// <summary>
+        /// Asynchronously close this connection
+        /// </summary>
+        /// <returns>A task representating the closing process</returns>
         public async Task CloseAsync()
         {
             await KickUserAsync("Proxy connection shutdown");
             if (_serverEndPoint != null)
+            {
                 _serverEndPoint.Close();
+                _serverEndPoint = null;
+            }
         }
 
-        public void Dispose()
+        /// <summary>
+        /// Cleans all resources of this connection
+        /// </summary>
+        public async void Dispose()
         {
-
+            await CloseAsync();
         }
 
         internal virtual async void HandleClient()
@@ -239,6 +269,11 @@ namespace Pdelvo.Minecraft.Proxy.Library.Connection
             throw new TaskCanceledException();
         }
 
+        /// <summary>
+        /// Asynchronously initialize the server side of this connection
+        /// </summary>
+        /// <param name="serverEndPoint">Information of the new server this connection should connect to.</param>
+        /// <returns>A task which returns the LogOnPacket or DisconnectPacket of the established connection.</returns>
         public async Task<Packet> InitializeServerAsync(RemoteServerInfo serverEndPoint)
         {
             ProxyEndPoint server = null;
@@ -308,6 +343,9 @@ namespace Pdelvo.Minecraft.Proxy.Library.Connection
             }
         }
 
+        /// <summary>
+        /// Start waiting for server packets
+        /// </summary>
         public void StartServerListening()
         {
             ServerEndPoint.ConnectionLost += ServerConnectionLost;
@@ -315,6 +353,9 @@ namespace Pdelvo.Minecraft.Proxy.Library.Connection
             ServerEndPoint.StartListening();
         }
 
+        /// <summary>
+        /// Start waiting for client packets
+        /// </summary>
         public void StartClientListening()
         {
             ClientEndPoint.ConnectionLost += ClientConnectionLost;
@@ -407,11 +448,17 @@ namespace Pdelvo.Minecraft.Proxy.Library.Connection
             }
         }
 
+        /// <summary>
+        /// Get the current server end point
+        /// </summary>
         public IProxyEndPoint ServerEndPoint
         {
             get { return _serverEndPoint; }
         }
 
+        /// <summary>
+        /// Get the current client end point
+        /// </summary>
         public IProxyEndPoint ClientEndPoint
         {
             get { return _clientEndPoint; }
