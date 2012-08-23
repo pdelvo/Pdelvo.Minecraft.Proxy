@@ -27,3 +27,7 @@ msbuild /p:Configuration=Debug /p:Platform="Any CPU"
 ##Issues##
 
 When you found any issues, bugs, feature requests feel free to report them to me and I will have alook at them!
+
+##License##
+
+This Code is licensed under the [MIT license](http://www.opensource.org/licenses/mit-license.php/)
