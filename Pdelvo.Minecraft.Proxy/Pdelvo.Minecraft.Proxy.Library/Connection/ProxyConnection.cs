@@ -83,6 +83,7 @@ namespace Pdelvo.Minecraft.Proxy.Library.Connection
 
         internal virtual async void HandleClient()
         {
+            var kickMessage = "Failed to login";
             bool success = true;
             try
             {
@@ -217,11 +218,24 @@ namespace Pdelvo.Minecraft.Proxy.Library.Connection
 
                     StartClientListening();
                     StartServerListening();
+
+                    args = new UserEventArgs(this);
+
+                    _server.PluginManager.TriggerPlugin.OnUserConnectedCompleted(args);
+
+                    args.EnsureSuccess();
                 }
             }
             catch (TaskCanceledException)
             {
                 return;
+            }
+            catch (OperationCanceledException ex)
+            {
+                kickMessage = ex.Message;
+                success = false;
+                _quitMessagePosted = true;
+                _logger.Error(string.Format("Client login aborted ({0})", Username), ex);
             }
             catch (Exception ex)
             {
@@ -230,7 +244,7 @@ namespace Pdelvo.Minecraft.Proxy.Library.Connection
                 _logger.Error(string.Format("Failed to login a client ({0})", Username), ex);
             }
             if (!success)
-                await KickUserAsync("Failed to login");
+                await KickUserAsync(kickMessage);
         }
 
         private async Task<Packet> InitializeServerAsync()

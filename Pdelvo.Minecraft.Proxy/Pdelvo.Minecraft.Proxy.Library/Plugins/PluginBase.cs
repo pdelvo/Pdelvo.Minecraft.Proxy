@@ -94,5 +94,11 @@ namespace Pdelvo.Minecraft.Proxy.Library.Plugins
         /// </summary>
         /// <param name="args">Gives information about server and client</param>
         public virtual void GetServerVersion(PluginResultEventArgs<RemoteServerInfo> args) { }
+
+        /// <summary>
+        /// This event is called after a user successfully joined, and after connecting to the backend server
+        /// </summary>
+        /// <param name="args">Information about the connected user</param>
+        public virtual void OnUserConnectedCompleted(UserEventArgs args) { }
     }
 }

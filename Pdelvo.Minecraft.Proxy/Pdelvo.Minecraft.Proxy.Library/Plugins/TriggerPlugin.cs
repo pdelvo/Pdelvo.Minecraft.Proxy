@@ -138,5 +138,20 @@ namespace Pdelvo.Minecraft.Proxy.Library.Plugins
                 }
             }
         }
+
+        public override void OnUserConnectedCompleted(UserEventArgs args)
+        {
+            foreach (var item in _triggerPlugins)
+            {
+                try
+                {
+                    item.OnUserConnectedCompleted(args);
+                }
+                catch (Exception ex)
+                {
+                    _logger.Warn("Could not pass event 'OnUserConnectedCompleted' to " + item.Name, ex);
+                }
+            }
+        }
     }
 }
