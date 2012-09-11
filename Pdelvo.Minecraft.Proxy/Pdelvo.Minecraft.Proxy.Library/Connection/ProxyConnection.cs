@@ -151,9 +151,9 @@ namespace Pdelvo.Minecraft.Proxy.Library.Connection
                     } while (packet is KeepAlive);
 
                     var encryptionKeyResponse = (EncryptionKeyResponse)packet;
-                    var verification = Pdelvo.Minecraft.Network.ProtocolSecurity.RSADecrypt(
+                    var verification = Pdelvo.Minecraft.Network.ProtocolSecurity.RsaDecrypt(
                         encryptionKeyResponse.VerifyToken.ToArray(), _server.RSACryptoServiceProvider, true);
-                    var sharedKey = Pdelvo.Minecraft.Network.ProtocolSecurity.RSADecrypt(
+                    var sharedKey = Pdelvo.Minecraft.Network.ProtocolSecurity.RsaDecrypt(
                         encryptionKeyResponse.SharedKey.ToArray(), _server.RSACryptoServiceProvider, true);
                     if (verification.Length != randomBuffer.Length
                         || !verification.Zip(randomBuffer, (a, b) => a == b).All(a => a))
@@ -327,8 +327,8 @@ namespace Pdelvo.Minecraft.Proxy.Library.Connection
                 var encryptionKeyRequest = tp as EncryptionKeyRequest;
 
                 server.ConnectionKey = ProtocolSecurity.GenerateAes128Key();
-                byte[] key = Pdelvo.Minecraft.Network.ProtocolSecurity.RSAEncrypt(server.ConnectionKey, encryptionKeyRequest.PublicKey.ToArray(), false);
-                byte[] verifyToken = Pdelvo.Minecraft.Network.ProtocolSecurity.RSAEncrypt(encryptionKeyRequest.VerifyToken.ToArray(), encryptionKeyRequest.PublicKey.ToArray(), false);
+                byte[] key = Pdelvo.Minecraft.Network.ProtocolSecurity.RsaEncrypt(server.ConnectionKey, encryptionKeyRequest.PublicKey.ToArray(), false);
+                byte[] verifyToken = Pdelvo.Minecraft.Network.ProtocolSecurity.RsaEncrypt(encryptionKeyRequest.VerifyToken.ToArray(), encryptionKeyRequest.PublicKey.ToArray(), false);
 
                 var encryptionKeyResponse = new EncryptionKeyResponse
                 {

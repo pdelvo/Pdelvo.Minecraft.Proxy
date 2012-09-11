@@ -98,7 +98,7 @@ namespace Pdelvo.Minecraft.Proxy.Library
 
             RSACryptoServiceProvider rsa;
 
-            RSAKeyPair = ProtocolSecurity.GenerateRSAKeyPair(out rsa);
+            RSAKeyPair = ProtocolSecurity.GenerateRsaKeyPair(out rsa);
 
             RSACryptoServiceProvider = rsa;
 
