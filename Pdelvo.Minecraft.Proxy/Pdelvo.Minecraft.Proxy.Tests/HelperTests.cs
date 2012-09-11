@@ -40,7 +40,7 @@ namespace Pdelvo.Minecraft.Proxy.Tests
         [TestMethod]
         public async Task VerifyUserAccountCheckFailsOnWrongDetails()
         {
-            Assert.IsFalse(await UserAccountServices.CheckAccountAsync("thisdoesnotexist", "acoolhash"));
+            Assert.IsFalse(await UserAccountServices.CheckAccountAsync("thisdoesnotexist", "acoolhash", useDefaultProxySettings: false));
         }
     }
 }

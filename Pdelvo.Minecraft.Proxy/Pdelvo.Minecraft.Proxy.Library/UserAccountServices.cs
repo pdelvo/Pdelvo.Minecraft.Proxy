@@ -18,13 +18,13 @@ namespace Pdelvo.Minecraft.Proxy.Library
         /// <param name="username">The name of the user</param>
         /// <param name="hash">The calculated connection hash. See http://wiki.vg/Authentication#Server_operation for more information</param>
         /// <returns>A task representing the result of this operation. true if the user account is valid, otherwise false</returns>
-        public static async Task<bool> CheckAccountAsync(string username, string hash)
+        public static async Task<bool> CheckAccountAsync(string username, string hash, bool useDefaultProxySettings = true)
         {
             try
             {
                 string url = "https://session.minecraft.net/game/checkserver.jsp?user={0}&serverId={1}";
                 url = String.Format(url, Uri.EscapeDataString(username), Uri.EscapeDataString(hash));
-                var client = new HttpClient();
+                var client = new HttpClient(new HttpClientHandler { UseProxy = useDefaultProxySettings });
                 var result = await client.GetStringAsync(url);
                 return result == "YES";
             }
