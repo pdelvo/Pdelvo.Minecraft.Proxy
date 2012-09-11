@@ -1,0 +1,1 @@
+net start "MineProxy.Net Windows Service"
