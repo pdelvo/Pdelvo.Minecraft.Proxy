@@ -23,9 +23,7 @@ namespace Pdelvo.Minecraft.Proxy.Service
         {
             log4net.Config.XmlConfigurator.Configure();
             _server = new ProxyServer();
-            _server.Start();
-
-            while (System.Console.ReadKey(true).Key != ConsoleKey.Q) { }
+            _server.Start();   
         }
 
         protected override async void OnStop()
