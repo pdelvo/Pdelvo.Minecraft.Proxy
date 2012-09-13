@@ -276,7 +276,11 @@ namespace Pdelvo.Minecraft.Proxy.Library
             {
                 try
                 {
-                    return await UserAccountServices.CheckAccountAsync(proxyConnection.Username, hash);
+                    var result = await UserAccountServices.CheckAccountAsync(proxyConnection.Username, hash);
+
+                    if (result.HasValue) return result.Value;
+                    _logger.Error("Could not access minecraft.net");
+                    return false;
                 }
                 catch (Exception ex)
                 {
