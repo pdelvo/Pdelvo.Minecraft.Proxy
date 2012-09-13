@@ -20,11 +20,16 @@ namespace Pdelvo.Minecraft.Proxy.Library
         /// <returns>A task representing the result of this operation. true if the user account is valid, otherwise false</returns>
         public static async Task<bool> CheckAccountAsync(string username, string hash, bool useDefaultProxySettings = true)
         {
+            return await CheckAccountAsync(username, hash, new HttpClientHandler { UseProxy = useDefaultProxySettings });
+        }
+
+        private static async Task<bool> CheckAccountAsync(string username, string hash, HttpClientHandler clientHandler)
+        {
             try
             {
                 string url = "https://session.minecraft.net/game/checkserver.jsp?user={0}&serverId={1}";
                 url = String.Format(url, Uri.EscapeDataString(username), Uri.EscapeDataString(hash));
-                var client = new HttpClient(new HttpClientHandler { UseProxy = useDefaultProxySettings });
+                var client = new HttpClient(clientHandler);
                 var result = await client.GetStringAsync(url);
                 return result == "YES";
             }
