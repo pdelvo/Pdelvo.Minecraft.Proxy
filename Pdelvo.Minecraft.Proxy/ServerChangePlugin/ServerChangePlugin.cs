@@ -90,7 +90,7 @@ namespace ServerChangePlugin
                     if (result.Groups["version"].Success)
                         version = int.Parse(result.Groups["version"].Value);
                     RemoteServerInfo info = new RemoteServerInfo(result.ToString(), 
-                        new IPEndPoint(IPAddress.Parse(result.Groups["ip"].Value), int.Parse(result.Groups["port"].Value)), version);
+                        new IPEndPoint((await Dns.GetHostEntryAsync(result.Groups["ip"].Value)).AddressList[0], result.Groups["port"].Success ? int.Parse(result.Groups["port"].Value) : 25565), version);
 
                     var connection = e.Connection;
 
