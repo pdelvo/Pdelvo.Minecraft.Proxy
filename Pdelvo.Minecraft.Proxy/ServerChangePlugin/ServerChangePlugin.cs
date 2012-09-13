@@ -65,7 +65,7 @@ namespace ServerChangePlugin
     {
         public ServerChangePlugin Plugin { get; set; }
 
-        Regex endPointRegex = new Regex("(?<ip>[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3})\\:(?<port>[0-9]+)(\\;(?<version>[0-9]*))?"); //currently supports ipv4
+        Regex endPointRegex = new Regex("^\\[Redirect\\].*?\\:\\s*(?<ip>[a-zA-Z0-9\\.\\-]+)\\s*(\\:\\s*(?<port>[0-9]+))?\\s*;(?<version>[0-9]+)?\\s*$");
 
         public ServerChangePacketListener(ServerChangePlugin plugin)
         {
