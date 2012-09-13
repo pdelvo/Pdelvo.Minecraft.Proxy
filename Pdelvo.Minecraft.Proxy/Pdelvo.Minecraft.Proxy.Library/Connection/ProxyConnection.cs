@@ -241,7 +241,8 @@ namespace Pdelvo.Minecraft.Proxy.Library.Connection
             {
                 success = false;
                 _quitMessagePosted = true;
-                _logger.Error(string.Format("Failed to login a client ({0})", Username), ex);
+                if (!string.IsNullOrEmpty(Username))
+                    _logger.Error(string.Format("Failed to login a client ({0})", Username), ex);
             }
             if (!success)
                 await KickUserAsync(kickMessage);
