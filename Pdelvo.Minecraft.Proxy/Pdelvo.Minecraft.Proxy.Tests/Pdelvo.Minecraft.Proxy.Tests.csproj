@@ -25,6 +25,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -54,7 +55,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\externals\asynclib\Pdelvo.Async.Extensions.csproj">
+    <ProjectReference Include="..\..\externals\asynclib\Pdelvo.Async.Extensions\Pdelvo.Async.Extensions.csproj">
       <Project>{835ae408-e04f-4e51-82c2-74f899c6dda0}</Project>
       <Name>Pdelvo.Async.Extensions</Name>
     </ProjectReference>

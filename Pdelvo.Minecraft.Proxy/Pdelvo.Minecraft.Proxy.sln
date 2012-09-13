@@ -16,7 +16,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Pdelvo.Minecraft.Proxy.Libr
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Libs", "Libs", "{5F9514A2-B1FC-419F-9DD8-EF9AFC692B7C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Pdelvo.Async.Extensions", "..\externals\asynclib\Pdelvo.Async.Extensions.csproj", "{835AE408-E04F-4E51-82C2-74F899C6DDA0}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Pdelvo.Async.Extensions", "..\externals\asynclib\Pdelvo.Async.Extensions\Pdelvo.Async.Extensions.csproj", "{835AE408-E04F-4E51-82C2-74F899C6DDA0}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Plugins", "Plugins", "{61383AE8-4BDD-44EC-9BBF-C0DB2216C4F8}"
 EndProject
