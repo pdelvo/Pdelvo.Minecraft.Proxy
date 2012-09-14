@@ -247,7 +247,7 @@ namespace Pdelvo.Minecraft.Proxy.Library
         /// </summary>
         /// <param name="proxyConnection">The proxy connection which should be checked</param>
         /// <returns>true if the online mode is enabled, otherwise false.</returns>
-        public bool OnlineModeEnabled(ProxyConnection proxyConnection)
+        public bool OnlineModeEnabled(IProxyConnection proxyConnection)
         {
             PluginResultEventArgs<bool?> args = new PluginResultEventArgs<bool?>(null, proxyConnection);
             PluginManager.TriggerPlugin.IsOnlineModeEnabled(args);
@@ -297,7 +297,7 @@ namespace Pdelvo.Minecraft.Proxy.Library
         /// </summary>
         /// <param name="proxyConnection">The connection this server relates to.</param>
         /// <param name="serverEndPoint">The current version of the Remote server info.</param>
-        public void GetServerVersion(ProxyConnection proxyConnection, RemoteServerInfo serverEndPoint)
+        public void GetServerVersion(IProxyConnection proxyConnection, RemoteServerInfo serverEndPoint)
         {
             PluginResultEventArgs<RemoteServerInfo> args = new PluginResultEventArgs<RemoteServerInfo>(serverEndPoint, proxyConnection);
 
