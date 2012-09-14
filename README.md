@@ -31,3 +31,11 @@ When you found any issues, bugs, feature requests feel free to report them to me
 ##License##
 
 This Code is licensed under the [MIT license](http://www.opensource.org/licenses/mit-license.php/)
+
+##Dependencies##
+
+Here is a list of libraries that are used by this software
+
+* [log4net](http://logging.apache.org/log4net/), license: [Apache License, Version 2.0](http://logging.apache.org/log4net/license.html)
+* [TPL Dataflow](http://msdn.microsoft.com/en-us/devlabs/gg585582.aspx)
+* [.Net Framework 4.5](http://www.microsoft.com/net/)
