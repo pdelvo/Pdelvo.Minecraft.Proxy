@@ -39,18 +39,28 @@ namespace Pdelvo.Minecraft.Proxy.Library.Plugins
             get { throw new NotSupportedException(); }
         }
 
-        public override bool? AllowJoining(System.Net.IPAddress address)
-        {
-            return _triggerPlugins.Select(a => a.AllowJoining(address)).SkipWhile(a => a == null).FirstOrDefault() ?? true;
-        }
-
-        public override void OnPlayerConnected(UserEventArgs connection)
+        public override void AllowJoining(CheckIPEventArgs args)
         {
             foreach (var item in _triggerPlugins)
             {
                 try
                 {
-                    item.OnPlayerConnected(connection);
+                    item.AllowJoining(args);
+                }
+                catch (Exception ex)
+                {
+                    _logger.Warn("Could not pass event 'AllowJoining' to " + item.Name, ex);
+                }
+            }
+        }
+
+        public override void OnPlayerConnected(UserEventArgs args)
+        {
+            foreach (var item in _triggerPlugins)
+            {
+                try
+                {
+                    item.OnPlayerConnected(args);
                 }
                 catch (Exception ex)
                 {

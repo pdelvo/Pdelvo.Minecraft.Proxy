@@ -56,6 +56,7 @@
     <Compile Include="IProxyServer.cs" />
     <Compile Include="Plugins\Events\CancelEventArgs.cs" />
     <Compile Include="Plugins\Events\CheckAccountEventArgs.cs" />
+    <Compile Include="Plugins\Events\CheckIPEventArgs.cs" />
     <Compile Include="Plugins\Events\PacketReceivedEventArgs.cs" />
     <Compile Include="Plugins\Events\PluginResultEventArgs.cs" />
     <Compile Include="Plugins\Events\UserEventArgs.cs" />

@@ -135,8 +135,11 @@ namespace Pdelvo.Minecraft.Proxy.Library
                     var remote = await _listeningSocket.AcceptTaskAsync();
 
                     IPAddress address = ((IPEndPoint)remote.RemoteEndPoint).Address;
+                    CheckIPEventArgs args = new CheckIPEventArgs(address, true);
 
-                    if (!(PluginManager.TriggerPlugin.AllowJoining(address) ?? false))
+                    PluginManager.TriggerPlugin.AllowJoining(args);
+
+                    if (!args.AllowJoining)
                     {
                         remote.Close();
                         _logger.Warn("Denied access from " + address);

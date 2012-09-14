@@ -38,10 +38,7 @@ namespace Pdelvo.Minecraft.Proxy.Library.Plugins
         /// true, if the client is allowed to join, false if not.
         /// The plugin should return null if the plugin can not decide whether the client is allowed or is not allowed to join.
         /// </returns>
-        public virtual bool? AllowJoining(IPAddress address)
-        {
-            return true;
-        }
+        public virtual void AllowJoining(CheckIPEventArgs args) { }
 
         /// <summary>
         /// This message is being called once after instantiating the plugin. It is used to initialize the plugin, 
