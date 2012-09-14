@@ -404,6 +404,7 @@ namespace Pdelvo.Minecraft.Proxy.Library.Connection
 
         async void ClientPacketReceived(object sender, PacketReceivedEventArgs args)
         {
+            if (ServerEndPoint == null) return;
             string kickMessage = null;
             try
             {
