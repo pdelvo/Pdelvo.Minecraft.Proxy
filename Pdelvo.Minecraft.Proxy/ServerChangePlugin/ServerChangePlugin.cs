@@ -95,7 +95,7 @@ namespace ServerChangePlugin
                         if (result.Groups["version"].Success)
                             version = int.Parse(result.Groups["version"].Value);
                         RemoteServerInfo info = new RemoteServerInfo(result.ToString(),
-                            new IPEndPoint((await Dns.GetHostEntryAsync(result.Groups["ip"].Value)).AddressList[0], result.Groups["port"].Success ? int.Parse(result.Groups["port"].Value) : 25565), version);
+                            new IPEndPoint(await FindAddress(result.Groups["ip"].Value), result.Groups["port"].Success ? int.Parse(result.Groups["port"].Value) : 25565), version);
 
                         var connection = e.Connection;
 
@@ -143,6 +143,15 @@ namespace ServerChangePlugin
             }
 
             ApplyServerEntityIDFixes(e);
+        }
+
+        private static async Task<IPAddress> FindAddress(string result)
+        {
+            IPAddress address;
+
+            if (IPAddress.TryParse(result, out address)) return address;
+
+            return (await Dns.GetHostEntryAsync(result)).AddressList[0];
         }
 
         private void ApplyServerEntityIDFixes(PacketReceivedEventArgs e)
