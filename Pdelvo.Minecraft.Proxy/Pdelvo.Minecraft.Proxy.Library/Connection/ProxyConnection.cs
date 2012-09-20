@@ -441,7 +441,12 @@ namespace Pdelvo.Minecraft.Proxy.Library.Connection
                 await KickUserAsync(kickMessage);
         }
 
-        private async Task KickUserAsync(string message)
+        /// <summary>
+        /// Asyncronously kicking a client
+        /// </summary>
+        /// <param name="message">The kick message</param>
+        /// <returns>A task representing the asynchronous operation</returns>
+        public async Task KickUserAsync(string message)
         {
             try
             {

@@ -58,6 +58,13 @@ namespace Pdelvo.Minecraft.Proxy.Library.Connection
         /// <summary>
         /// Gets the entity of the user
         /// </summary>
-        int EntityID { get;}
+        int EntityID { get; }
+
+        /// <summary>
+        /// Asyncronously kicking a client
+        /// </summary>
+        /// <param name="message">The kick message</param>
+        /// <returns>A task representing the asynchronous operation</returns>
+        Task KickUserAsync(string message);
     }
 }
