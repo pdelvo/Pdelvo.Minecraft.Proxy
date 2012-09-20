@@ -33,7 +33,7 @@ namespace Pdelvo.Minecraft.Proxy.Library.Plugins
         /// <summary>
         /// This method is being called at the beginning when a new client connects to the proxy server. A plugin can decide to allow, or deny the incoming connection.
         /// </summary>
-        /// <param name="address">The IP address of the remote client</param>
+        /// <param name="args">The IP address of the remote client</param>
         /// <returns>
         /// true, if the client is allowed to join, false if not.
         /// The plugin should return null if the plugin can not decide whether the client is allowed or is not allowed to join.
