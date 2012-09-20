@@ -234,7 +234,7 @@ namespace Pdelvo.Minecraft.Proxy.Library
 
             var settings = ProxyConfigurationSection.Settings;
 
-            var server = settings.Server.OfType<ServerElement>().Where(m => m.IsDefault || (m.DnsName != null && proxyConnection.Host.StartsWith(m.DnsName))).OrderBy(m => m.IsDefault);
+            var server = settings.Server.OfType<ServerElement>().Where(m => m.IsDefault || (!string.IsNullOrEmpty(m.DnsName) && proxyConnection.Host.StartsWith(m.DnsName))).OrderBy(m => m.IsDefault);
 
             var possibleResult = server.FirstOrDefault();
             var result = possibleResult == null ? null : new RemoteServerInfo(possibleResult.Name, Extensions.ParseEndPoint(possibleResult.EndPoint), possibleResult.MinecraftVersion);
