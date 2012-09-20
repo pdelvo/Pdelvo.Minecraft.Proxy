@@ -118,7 +118,7 @@ namespace Pdelvo.Minecraft.Proxy.Library.Plugins
                 try
                 {
                     Assembly assembly = Assembly.Load(File.ReadAllBytes(item));
-                    var pluginAttributes = assembly.GetCustomAttributes<PluginAssemblyAttribute>();
+                    var pluginAttributes = assembly.GetAttributes<PluginAssemblyAttribute>();
                     foreach (var plugin in pluginAttributes)
                     {
                         var pl = (PluginBase)Activator.CreateInstance(plugin.PluginType);

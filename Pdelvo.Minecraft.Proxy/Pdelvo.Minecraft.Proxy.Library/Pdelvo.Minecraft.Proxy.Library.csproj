@@ -48,6 +48,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AttributeExtensions.cs" />
     <Compile Include="Configuration\ProxyConfigurationSection.cs" />
     <Compile Include="Connection\ConnectionExtensions.cs" />
     <Compile Include="Connection\IProxyEndPoint.cs" />
