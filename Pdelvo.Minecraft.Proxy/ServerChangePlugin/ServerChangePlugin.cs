@@ -67,6 +67,8 @@ namespace ServerChangePlugin
 
         Regex endPointRegex = new Regex("^\\[Redirect\\].*?\\:\\s*(?<ip>[a-zA-Z0-9\\.\\-]+)\\s*(\\:\\s*(?<port>[0-9]+))?\\s*(;(?<version>[0-9]+))?\\s*$");
 
+        ILog _logger = LogManager.GetLogger(typeof(ServerChangePlugin));
+        
         public ServerChangePacketListener(ServerChangePlugin plugin)
         {
             Plugin = plugin;
@@ -81,51 +83,63 @@ namespace ServerChangePlugin
             var packet = e.Packet as DisconnectPacket;
             if (packet != null)
             {
-                var result = endPointRegex.Match(packet.Reason);
-
-                if (result.Success)
+                Exception exception = null;
+                try
                 {
-                    e.Handled = true;
-                    var version = 0;
-                    if (result.Groups["version"].Success)
-                        version = int.Parse(result.Groups["version"].Value);
-                    RemoteServerInfo info = new RemoteServerInfo(result.ToString(), 
-                        new IPEndPoint((await Dns.GetHostEntryAsync(result.Groups["ip"].Value)).AddressList[0], result.Groups["port"].Success ? int.Parse(result.Groups["port"].Value) : 25565), version);
+                    var result = endPointRegex.Match(packet.Reason);
 
-                    var connection = e.Connection;
-
-                    var pa = await connection.InitializeServerAsync(info);
-
-                    if (pa is DisconnectPacket)
+                    if (result.Success)
                     {
-                        await e.Connection.ClientEndPoint.SendPacketAsync(pa);
+                        e.Handled = true;
+                        var version = 0;
+                        if (result.Groups["version"].Success)
+                            version = int.Parse(result.Groups["version"].Value);
+                        RemoteServerInfo info = new RemoteServerInfo(result.ToString(),
+                            new IPEndPoint((await Dns.GetHostEntryAsync(result.Groups["ip"].Value)).AddressList[0], result.Groups["port"].Success ? int.Parse(result.Groups["port"].Value) : 25565), version);
+
+                        var connection = e.Connection;
+
+                        var pa = await connection.InitializeServerAsync(info);
+
+                        if (pa is DisconnectPacket)
+                        {
+                            await e.Connection.ClientEndPoint.SendPacketAsync(pa);
+                            return;
+                        }
+                        var logonResponse = pa as LogOnResponse;
+                        //Add entity id mapping
+                        Plugin.EntityIDMapping.AddOrUpdate(e.Connection, new Tuple<int, int>(e.Connection.EntityID, logonResponse.EntityId), (a, b) => b);
+
+                        var state = new InvalidState { Reason = 2 }; // Stop raining
+                        await connection.ClientEndPoint.SendPacketAsync(state);
+
+                        var respawn = new Respawn
+                        {
+                            World = logonResponse.Dimension == 0 ? -1 : 0,//Force chunk and entity unload on client
+                            CreativeMode = (byte)logonResponse.ServerMode,
+                            Difficulty = logonResponse.Difficulty,
+                            Generator = logonResponse.Generator,//for compatibility
+                            MapSeed = logonResponse.MapSeed,//for compatibility
+                            WorldHeight = (short)logonResponse.WorldHeight
+                        };
+                        await connection.ClientEndPoint.SendPacketAsync(respawn);
+                        //now send the correct world
+                        respawn.World = logonResponse.Dimension;
+                        await connection.ClientEndPoint.SendPacketAsync(respawn);
+                        await Task.Delay(500); // I don't like this too :(
+                        connection.StartServerListening();
+
+                        Plugin.Logger.InfoFormat("{0} got transferred to {1}", e.Connection.Username, info.EndPoint);
                         return;
                     }
-                    var logonResponse = pa as LogOnResponse;
-                    //Add entity id mapping
-                    Plugin.EntityIDMapping.AddOrUpdate(e.Connection,  new Tuple<int, int>(e.Connection.EntityID, logonResponse.EntityId), (a, b) => b);
-
-                    var state = new InvalidState { Reason = 2 }; // Stop raining
-                    await connection.ClientEndPoint.SendPacketAsync(state);
-
-                    var respawn = new Respawn
-                    {
-                        World = logonResponse.Dimension == 0 ? -1 : 0,//Force chunk and entity unload on client
-                        CreativeMode = (byte)logonResponse.ServerMode,
-                        Difficulty = logonResponse.Difficulty,
-                        Generator = logonResponse.Generator,//for compatibility
-                        MapSeed = logonResponse.MapSeed,//for compatibility
-                        WorldHeight = (short)logonResponse.WorldHeight
-                    };
-                    await connection.ClientEndPoint.SendPacketAsync(respawn);
-                    //now send the correct world
-                    respawn.World = logonResponse.Dimension;
-                    await connection.ClientEndPoint.SendPacketAsync(respawn);
-                    await Task.Delay(500); // I don't like this too :(
-                    connection.StartServerListening();
-
-                    Plugin.Logger.InfoFormat("{0} got transferred to {1}", e.Connection.Username, info.EndPoint);
                 }
+                catch (Exception ex)
+                {
+                    _logger.Error(ex);
+                    exception = ex;
+                }
+                if (exception != null)
+                    await e.Connection.KickUserAsync(exception.Message);
             }
 
             ApplyServerEntityIDFixes(e);
