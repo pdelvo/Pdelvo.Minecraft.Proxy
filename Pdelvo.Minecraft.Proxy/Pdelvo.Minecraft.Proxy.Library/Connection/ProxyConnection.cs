@@ -100,8 +100,17 @@ namespace Pdelvo.Minecraft.Proxy.Library.Connection
                 if (listPing != null) // send motd
                 {
                     _isMotDRequest = true;
-                    var response = ProtocolHelper.BuildMotDString(_server.MotD, _server.ConnectedUsers, _server.MaxUsers);
-                    await KickUserAsync(response);
+
+                    if (listPing.MagicByte == 1)
+                    {
+                        var response = ProtocolHelper.BuildMotDString(ProtocolInformation.MaxSupportedClientVersion, "<multi version>", _server.MotD, _server.ConnectedUsers, _server.MaxUsers);
+                        await KickUserAsync(response);
+                    }
+                    else
+                    {
+                        var response = ProtocolHelper.BuildMotDString(_server.MotD, _server.ConnectedUsers, _server.MaxUsers);
+                        await KickUserAsync(response);
+                    }
                     return;
                 }
 
