@@ -39,3 +39,5 @@ Here is a list of libraries that are used by this software
 * [log4net](http://logging.apache.org/log4net/), license: [Apache License, Version 2.0](http://logging.apache.org/log4net/license.html)
 * [TPL Dataflow](http://msdn.microsoft.com/en-us/devlabs/gg585582.aspx)
 * [.Net Framework 4.5](http://www.microsoft.com/net/)
+
+MineProxy.Net is not affiliated with Minecraft.
