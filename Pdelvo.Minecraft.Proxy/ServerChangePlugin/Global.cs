@@ -1,4 +1,3 @@
 ﻿using Pdelvo.Minecraft.Proxy.Library.Plugins;
 
-
-[assembly:PluginAssembly(typeof(ServerChangePlugin.ServerChangePlugin))]
+[assembly: PluginAssembly(typeof (ServerChangePlugin.ServerChangePlugin))]

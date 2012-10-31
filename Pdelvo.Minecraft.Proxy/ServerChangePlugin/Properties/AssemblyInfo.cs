@@ -1,6 +1,6 @@
 ﻿using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+
 [assembly: AssemblyTitle("MineProxy.Net Server Change Plugin")]
 [assembly: AssemblyDescription("A plugin to change minecraft servers on the fly")]
 [assembly: AssemblyConfiguration("")]

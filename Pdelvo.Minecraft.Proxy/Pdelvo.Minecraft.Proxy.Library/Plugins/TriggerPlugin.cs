@@ -1,18 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
-using log4net;
 using Pdelvo.Minecraft.Proxy.Library.Plugins.Events;
+using log4net;
 
 namespace Pdelvo.Minecraft.Proxy.Library.Plugins
 {
     internal class TriggerPlugin : PluginBase
     {
-        List<PluginBase> _triggerPlugins;
-
-        ILog _logger;
+        private readonly ILog _logger;
+        private readonly List<PluginBase> _triggerPlugins;
 
         public TriggerPlugin()
         {
@@ -26,22 +23,22 @@ namespace Pdelvo.Minecraft.Proxy.Library.Plugins
 
         public override string Name
         {
-            get { throw new NotSupportedException(); }
+            get { throw new NotSupportedException (); }
         }
 
         public override Version Version
         {
-            get { throw new NotSupportedException(); }
+            get { throw new NotSupportedException (); }
         }
 
         public override string Author
         {
-            get { throw new NotSupportedException(); }
+            get { throw new NotSupportedException (); }
         }
 
         public override void AllowJoining(CheckIPEventArgs args)
         {
-            foreach (var item in _triggerPlugins)
+            foreach (PluginBase item in _triggerPlugins)
             {
                 try
                 {
@@ -56,7 +53,7 @@ namespace Pdelvo.Minecraft.Proxy.Library.Plugins
 
         public override void OnPlayerConnected(UserEventArgs args)
         {
-            foreach (var item in _triggerPlugins)
+            foreach (PluginBase item in _triggerPlugins)
             {
                 try
                 {
@@ -71,7 +68,7 @@ namespace Pdelvo.Minecraft.Proxy.Library.Plugins
 
         public override void OnPlayerServerSelection(PluginResultEventArgs<RemoteServerInfo> args)
         {
-            foreach (var item in _triggerPlugins)
+            foreach (PluginBase item in _triggerPlugins)
             {
                 try
                 {
@@ -86,7 +83,7 @@ namespace Pdelvo.Minecraft.Proxy.Library.Plugins
 
         public override void OnConnectionLost(UserEventArgs args)
         {
-            foreach (var item in _triggerPlugins)
+            foreach (PluginBase item in _triggerPlugins)
             {
                 try
                 {
@@ -101,12 +98,12 @@ namespace Pdelvo.Minecraft.Proxy.Library.Plugins
 
         public override void Load(PluginManager manager)
         {
-            throw new NotSupportedException();
+            throw new NotSupportedException ();
         }
 
         public override async Task OnUserAccountCheckAsync(CheckAccountEventArgs args)
         {
-            foreach (var item in _triggerPlugins)
+            foreach (PluginBase item in _triggerPlugins)
             {
                 try
                 {
@@ -121,7 +118,7 @@ namespace Pdelvo.Minecraft.Proxy.Library.Plugins
 
         public override void IsOnlineModeEnabled(PluginResultEventArgs<bool?> args)
         {
-            foreach (var item in _triggerPlugins)
+            foreach (PluginBase item in _triggerPlugins)
             {
                 try
                 {
@@ -136,7 +133,7 @@ namespace Pdelvo.Minecraft.Proxy.Library.Plugins
 
         public override void GetServerVersion(PluginResultEventArgs<RemoteServerInfo> args)
         {
-            foreach (var item in _triggerPlugins)
+            foreach (PluginBase item in _triggerPlugins)
             {
                 try
                 {
@@ -151,7 +148,7 @@ namespace Pdelvo.Minecraft.Proxy.Library.Plugins
 
         public override void OnUserConnectedCompleted(UserEventArgs args)
         {
-            foreach (var item in _triggerPlugins)
+            foreach (PluginBase item in _triggerPlugins)
             {
                 try
                 {

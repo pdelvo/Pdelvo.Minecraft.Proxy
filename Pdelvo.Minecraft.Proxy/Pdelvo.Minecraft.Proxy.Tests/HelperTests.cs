@@ -1,7 +1,7 @@
 ﻿using System;
+using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Pdelvo.Minecraft.Proxy.Library;
-using System.Threading.Tasks;
 
 namespace Pdelvo.Minecraft.Proxy.Tests
 {
@@ -13,9 +13,9 @@ namespace Pdelvo.Minecraft.Proxy.Tests
         {
             for (int i = 0; i < 10; i++)
             {
-                var hash = Session.GetSessionHash();
+                string hash = Session.GetSessionHash ();
 
-                var hash2 = Session.GetSessionHash();
+                string hash2 = Session.GetSessionHash ();
 
                 Assert.AreNotEqual(hash, hash2);
             }
@@ -26,11 +26,11 @@ namespace Pdelvo.Minecraft.Proxy.Tests
         {
             for (int i = 0; i < 1000; i++)
             {
-                var hash = Session.GetSessionHash();
+                string hash = Session.GetSessionHash ();
 
-                var hash2 = Session.GetSessionHash();
-                var lng = Convert.ToInt64(hash, 16);
-                var lng2 = Convert.ToInt64(hash2, 16);
+                string hash2 = Session.GetSessionHash ();
+                long lng = Convert.ToInt64(hash, 16);
+                long lng2 = Convert.ToInt64(hash2, 16);
 
                 Assert.IsTrue(lng >= 0);
                 Assert.IsTrue(lng2 >= 0);
@@ -40,7 +40,10 @@ namespace Pdelvo.Minecraft.Proxy.Tests
         [TestMethod]
         public async Task VerifyUserAccountCheckFailsOnWrongDetails()
         {
-            Assert.IsTrue(await UserAccountServices.CheckAccountAsync("thisdoesnotexist", "acoolhash", useDefaultProxySettings: false) == false);
+            Assert.IsTrue(
+                await
+                UserAccountServices.CheckAccountAsync("thisdoesnotexist", "acoolhash", useDefaultProxySettings: false) ==
+                false);
         }
     }
 }

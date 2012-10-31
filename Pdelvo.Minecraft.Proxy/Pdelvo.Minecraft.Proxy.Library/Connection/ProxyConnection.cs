@@ -1,97 +1,246 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
-using log4net;
+using Pdelvo.Async.Extensions;
 using Pdelvo.Minecraft.Network;
 using Pdelvo.Minecraft.Protocol;
 using Pdelvo.Minecraft.Protocol.Helper;
 using Pdelvo.Minecraft.Protocol.Packets;
 using Pdelvo.Minecraft.Proxy.Library.Plugins.Events;
-using Pdelvo.Async.Extensions;
-using System.Net;
+using log4net;
 
 namespace Pdelvo.Minecraft.Proxy.Library.Connection
 {
     /// <summary>
-    /// The basic implementation of the IProxyConnection interface
+    ///   The basic implementation of the IProxyConnection interface
     /// </summary>
     public class ProxyConnection : IProxyConnection
     {
-        Socket _networkSocket;
-        ProxyServer _server;
-        ProxyEndPoint _serverEndPoint;
-        ProxyEndPoint _clientEndPoint;
-        ILog _logger;
-        Random _random;
-        bool _connectionClosed;
-        bool _quitMessagePosted;
-        bool _isMotDRequest;
+        private readonly ILog _logger;
+        private readonly Socket _networkSocket;
+        private readonly Random _random;
+        private readonly ProxyServer _server;
+        private ProxyEndPoint _clientEndPoint;
+        private bool _connectionClosed;
+        private bool _isMotDRequest;
+        private bool _quitMessagePosted;
+        private ProxyEndPoint _serverEndPoint;
 
         /// <summary>
-        /// Get the username of the current user
+        ///   Creates a new instance of the ProxyConnection class with the remote socket of the client 
+        ///   and the ProxyServer this connection should belong to.
         /// </summary>
-        public string Username { get; protected set; }
-
-        /// <summary>
-        /// Get the Hostname and port the user used to connect to the server
-        /// </summary>
-        public string Host { get; protected set; }
-
-        /// <summary>
-        /// Get the current entity id of the user
-        /// </summary>
-        public int EntityID { get; protected set; }
-
-        /// <summary>
-        /// Creates a new instance of the ProxyConnection class with the remote socket of the client 
-        /// and the ProxyServer this connection should belong to.
-        /// </summary>
-        /// <param name="networkSocket">The network socket of the network client</param>
-        /// <param name="server">The proxy server this connection belongs to</param>
+        /// <param name="networkSocket"> The network socket of the network client </param>
+        /// <param name="server"> The proxy server this connection belongs to </param>
         public ProxyConnection(Socket networkSocket, ProxyServer server)
         {
             _logger = LogManager.GetLogger("Proxy Connection");
             _networkSocket = networkSocket;
             _server = server;
-            _random = new Random();
+            _random = new Random ();
         }
 
+        #region IProxyConnection Members
+
         /// <summary>
-        /// Asynchronously close this connection
+        ///   Get the username of the current user
         /// </summary>
-        /// <returns>A task representating the closing process</returns>
+        public string Username { get; protected set; }
+
+        /// <summary>
+        ///   Get the Hostname and port the user used to connect to the server
+        /// </summary>
+        public string Host { get; protected set; }
+
+        /// <summary>
+        ///   Get the current entity id of the user
+        /// </summary>
+        public int EntityID { get; protected set; }
+
+        /// <summary>
+        ///   Asynchronously close this connection
+        /// </summary>
+        /// <returns> A task representating the closing process </returns>
         public async Task CloseAsync()
         {
             await KickUserAsync("Proxy connection shutdown");
             if (_serverEndPoint != null)
             {
-                _serverEndPoint.Close();
+                _serverEndPoint.Close ();
                 _serverEndPoint = null;
             }
         }
 
         /// <summary>
-        /// Cleans all resources of this connection
+        ///   Cleans all resources of this connection
         /// </summary>
         public async void Dispose()
         {
-            await CloseAsync();
+            await CloseAsync ();
         }
+
+        /// <summary>
+        ///   Asynchronously initialize the server side of this connection
+        /// </summary>
+        /// <param name="serverEndPoint"> Information of the new server this connection should connect to. </param>
+        /// <returns> A task which returns the LogOnPacket or DisconnectPacket of the established connection. </returns>
+        public async Task<Packet> InitializeServerAsync(RemoteServerInfo serverEndPoint)
+        {
+            ProxyEndPoint server = null;
+            try
+            {
+                UnregisterServer ();
+                _serverEndPoint = null;
+
+                if (serverEndPoint.MinecraftVersion == 0)
+                    _server.GetServerVersion(this, serverEndPoint);
+
+                var socket = new Socket(serverEndPoint.EndPoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp)
+                                 {
+                                     ReceiveBufferSize = 1024*1024
+                                 };
+
+                await socket.ConnectTaskAsync(serverEndPoint.EndPoint);
+
+
+                server =
+                    new ProxyEndPoint(
+                        ServerRemoteInterface.Create(new NetworkStream(socket), serverEndPoint.MinecraftVersion),
+                        serverEndPoint.MinecraftVersion);
+                server.RemoteEndPoint = (IPEndPoint) socket.RemoteEndPoint;
+                var handshakeRequest = new HandshakeRequest
+                                           {
+                                               UserName = Username,
+                                               Host = Host,
+                                               ProtocolVersion = (byte) serverEndPoint.MinecraftVersion
+                                           };
+                await server.SendPacketAsync(handshakeRequest);
+
+                Packet tp = await server.ReceivePacketAsync ();
+
+                if (tp is DisconnectPacket)
+                {
+                    throw new OperationCanceledException((tp as DisconnectPacket).Reason);
+                }
+
+                var encryptionKeyRequest = tp as EncryptionKeyRequest;
+
+                server.ConnectionKey = ProtocolSecurity.GenerateAes128Key ();
+                byte[] key = ProtocolSecurity.RsaEncrypt(server.ConnectionKey, encryptionKeyRequest.PublicKey.ToArray (),
+                                                         false);
+                byte[] verifyToken = ProtocolSecurity.RsaEncrypt(encryptionKeyRequest.VerifyToken.ToArray (),
+                                                                 encryptionKeyRequest.PublicKey.ToArray (), false);
+
+                var encryptionKeyResponse = new EncryptionKeyResponse
+                                                {
+                                                    SharedKey = key,
+                                                    VerifyToken = verifyToken
+                                                };
+                await server.SendPacketAsync(encryptionKeyResponse);
+
+                Packet p = await server.ReceivePacketAsync ();
+
+                server.EnableAes ();
+
+                await server.SendPacketAsync(new RespawnRequestPacket ());
+
+                return await server.ReceivePacketAsync ();
+            }
+            catch (Exception ex)
+            {
+                _quitMessagePosted = true;
+                _logger.Error("Could not connect to remote server", ex);
+                throw;
+            }
+            finally
+            {
+                _serverEndPoint = server;
+            }
+        }
+
+        /// <summary>
+        ///   Start waiting for server packets
+        /// </summary>
+        public void StartServerListening()
+        {
+            ServerEndPoint.ConnectionLost += ServerConnectionLost;
+            ServerEndPoint.PacketReceived += ServerPacketReceived;
+            ServerEndPoint.StartListening ();
+        }
+
+        /// <summary>
+        ///   Start waiting for client packets
+        /// </summary>
+        public void StartClientListening()
+        {
+            ClientEndPoint.ConnectionLost += ClientConnectionLost;
+            ClientEndPoint.PacketReceived += ClientPacketReceived;
+            ClientEndPoint.StartListening ();
+        }
+
+        /// <summary>
+        ///   Asyncronously kicking a client
+        /// </summary>
+        /// <param name="message"> The kick message </param>
+        /// <returns> A task representing the asynchronous operation </returns>
+        public async Task KickUserAsync(string message)
+        {
+            try
+            {
+                await ClientEndPoint.SendPacketAsync(new DisconnectPacket {Reason = message});
+                if (!_quitMessagePosted && !_isMotDRequest)
+                {
+                    _logger.Info(Username + " lost connection, message: " + message);
+                    _quitMessagePosted = true;
+                }
+                ClientEndPoint.Close ();
+                if (ServerEndPoint != null)
+                {
+                    ServerEndPoint.Close ();
+                }
+            }
+            catch (Exception)
+            {
+            }
+            finally
+            {
+                _server.RemoveConnection(this);
+            }
+        }
+
+        /// <summary>
+        ///   Get the current server end point
+        /// </summary>
+        public IProxyEndPoint ServerEndPoint
+        {
+            get { return _serverEndPoint; }
+        }
+
+        /// <summary>
+        ///   Get the current client end point
+        /// </summary>
+        public IProxyEndPoint ClientEndPoint
+        {
+            get { return _clientEndPoint; }
+        }
+
+        #endregion
 
         internal virtual async void HandleClient()
         {
-            var kickMessage = "Failed to login";
+            string kickMessage = "Failed to login";
             bool success = true;
             try
             {
-                var clientRemoteInterface = ClientRemoteInterface.Create(new NetworkStream(_networkSocket), 39);
+                ClientRemoteInterface clientRemoteInterface =
+                    ClientRemoteInterface.Create(new NetworkStream(_networkSocket), 39);
                 _clientEndPoint = new ProxyEndPoint(clientRemoteInterface, clientRemoteInterface.EndPoint.Version);
-                _clientEndPoint.RemoteEndPoint = (IPEndPoint)_networkSocket.RemoteEndPoint;
+                _clientEndPoint.RemoteEndPoint = (IPEndPoint) _networkSocket.RemoteEndPoint;
 
-                var packet = await clientRemoteInterface.ReadPacketAsync();
+                Packet packet = await clientRemoteInterface.ReadPacketAsync ();
 
                 var listPing = packet as PlayerListPing;
                 var handshakeRequest = packet as HandshakeRequest;
@@ -103,12 +252,15 @@ namespace Pdelvo.Minecraft.Proxy.Library.Connection
 
                     if (listPing.MagicByte == 1)
                     {
-                        var response = ProtocolHelper.BuildMotDString(ProtocolInformation.MaxSupportedClientVersion, "<multi version>", _server.MotD, _server.ConnectedUsers, _server.MaxUsers);
+                        string response = ProtocolHelper.BuildMotDString(ProtocolInformation.MaxSupportedClientVersion,
+                                                                         "<multi version>", _server.MotD,
+                                                                         _server.ConnectedUsers, _server.MaxUsers);
                         await KickUserAsync(response);
                     }
                     else
                     {
-                        var response = ProtocolHelper.BuildMotDString(_server.MotD, _server.ConnectedUsers, _server.MaxUsers);
+                        string response = ProtocolHelper.BuildMotDString(_server.MotD, _server.ConnectedUsers,
+                                                                         _server.MaxUsers);
                         await KickUserAsync(response);
                     }
                     return;
@@ -137,33 +289,35 @@ namespace Pdelvo.Minecraft.Proxy.Library.Connection
 
                     if (args.Canceled)
                     {
-                        await ClientEndPoint.SendPacketAsync(new DisconnectPacket { Reason = args.CancelMessage });
-                        _networkSocket.Close();
+                        await ClientEndPoint.SendPacketAsync(new DisconnectPacket {Reason = args.CancelMessage});
+                        _networkSocket.Close ();
                         _server.RemoveConnection(this);
                         return;
                     }
 
                     bool onlineMode = _server.OnlineModeEnabled(this);
-                    string serverId = onlineMode ? Session.GetSessionHash() : "-";
+                    string serverId = onlineMode ? Session.GetSessionHash () : "-";
 
-                    byte[] randomBuffer = new byte[4];
+                    var randomBuffer = new byte[4];
                     _random.NextBytes(randomBuffer);
                     await ClientEndPoint.SendPacketAsync(new EncryptionKeyRequest
-                    {
-                        ServerId = serverId,
-                        PublicKey = AsnKeyBuilder.PublicKeyToX509(_server.RSAKeyPair).GetBytes(),
-                        VerifyToken = randomBuffer
-                    });
+                                                             {
+                                                                 ServerId = serverId,
+                                                                 PublicKey =
+                                                                     AsnKeyBuilder.PublicKeyToX509(_server.RSAKeyPair).
+                                                                     GetBytes (),
+                                                                 VerifyToken = randomBuffer
+                                                             });
                     do
                     {
-                        packet = await ClientEndPoint.ReceivePacketAsync();
+                        packet = await ClientEndPoint.ReceivePacketAsync ();
                     } while (packet is KeepAlive);
 
-                    var encryptionKeyResponse = (EncryptionKeyResponse)packet;
-                    var verification = Pdelvo.Minecraft.Network.ProtocolSecurity.RsaDecrypt(
-                        encryptionKeyResponse.VerifyToken.ToArray(), _server.RSACryptoServiceProvider, true);
-                    var sharedKey = Pdelvo.Minecraft.Network.ProtocolSecurity.RsaDecrypt(
-                        encryptionKeyResponse.SharedKey.ToArray(), _server.RSACryptoServiceProvider, true);
+                    var encryptionKeyResponse = (EncryptionKeyResponse) packet;
+                    byte[] verification = ProtocolSecurity.RsaDecrypt(
+                        encryptionKeyResponse.VerifyToken.ToArray (), _server.RSACryptoServiceProvider, true);
+                    byte[] sharedKey = ProtocolSecurity.RsaDecrypt(
+                        encryptionKeyResponse.SharedKey.ToArray (), _server.RSACryptoServiceProvider, true);
                     if (verification.Length != randomBuffer.Length
                         || !verification.Zip(randomBuffer, (a, b) => a == b).All(a => a))
                     {
@@ -172,12 +326,12 @@ namespace Pdelvo.Minecraft.Proxy.Library.Connection
                         return;
                     }
 
-                    await ClientEndPoint.SendPacketAsync(new EncryptionKeyResponse { SharedKey = new byte[0] });
+                    await ClientEndPoint.SendPacketAsync(new EncryptionKeyResponse {SharedKey = new byte[0]});
 
                     ClientEndPoint.ConnectionKey = sharedKey;
-                    ClientEndPoint.EnableAes();//now everything is encrypted
+                    ClientEndPoint.EnableAes (); //now everything is encrypted
 
-                    var p = await ClientEndPoint.ReceivePacketAsync();
+                    Packet p = await ClientEndPoint.ReceivePacketAsync ();
 
                     if (!(p is RespawnRequestPacket))
                     {
@@ -186,10 +340,10 @@ namespace Pdelvo.Minecraft.Proxy.Library.Connection
                         return;
                     }
 
-                    var hash = ProtocolSecurity.ComputeHash(
+                    string hash = ProtocolSecurity.ComputeHash(
                         Encoding.ASCII.GetBytes(serverId),
                         ClientEndPoint.ConnectionKey,
-                        AsnKeyBuilder.PublicKeyToX509(_server.RSAKeyPair).GetBytes());
+                        AsnKeyBuilder.PublicKeyToX509(_server.RSAKeyPair).GetBytes ());
 
                     if (onlineMode)
                     {
@@ -200,7 +354,7 @@ namespace Pdelvo.Minecraft.Proxy.Library.Connection
                         }
                         catch (OperationCanceledException ex)
                         {
-                            var t = KickUserAsync(ex.Message);
+                            Task t = KickUserAsync(ex.Message);
                             return;
                         }
 
@@ -215,7 +369,7 @@ namespace Pdelvo.Minecraft.Proxy.Library.Connection
 
                     _server.PromoteConnection(this);
 
-                    var response = await InitializeServerAsync();
+                    Packet response = await InitializeServerAsync ();
 
                     var logonResponse = response as LogOnResponse;
                     if (logonResponse != null)
@@ -225,14 +379,14 @@ namespace Pdelvo.Minecraft.Proxy.Library.Connection
 
                     await ClientEndPoint.SendPacketAsync(response);
 
-                    StartClientListening();
-                    StartServerListening();
+                    StartClientListening ();
+                    StartServerListening ();
 
                     args = new UserEventArgs(this);
 
                     _server.PluginManager.TriggerPlugin.OnUserConnectedCompleted(args);
 
-                    args.EnsureSuccess();
+                    args.EnsureSuccess ();
                 }
             }
             catch (TaskCanceledException)
@@ -290,114 +444,20 @@ namespace Pdelvo.Minecraft.Proxy.Library.Connection
             }
             if (!success)
                 await KickUserAsync("Could not connect to remote server");
-            throw new TaskCanceledException();
+            throw new TaskCanceledException ();
         }
 
-        /// <summary>
-        /// Asynchronously initialize the server side of this connection
-        /// </summary>
-        /// <param name="serverEndPoint">Information of the new server this connection should connect to.</param>
-        /// <returns>A task which returns the LogOnPacket or DisconnectPacket of the established connection.</returns>
-        public async Task<Packet> InitializeServerAsync(RemoteServerInfo serverEndPoint)
+        private void ClientConnectionLost(object sender, EventArgs e)
         {
-            ProxyEndPoint server = null;
-            try
-            {
-                UnregisterServer();
-                _serverEndPoint = null;
-
-                if(serverEndPoint.MinecraftVersion == 0)
-                _server.GetServerVersion(this, serverEndPoint);
-
-                var socket = new Socket(serverEndPoint.EndPoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp)
-                {
-                    ReceiveBufferSize = 1024 * 1024
-                };
-
-                await socket.ConnectTaskAsync(serverEndPoint.EndPoint);
-
-
-                server = new ProxyEndPoint(ServerRemoteInterface.Create(new NetworkStream(socket), serverEndPoint.MinecraftVersion), serverEndPoint.MinecraftVersion);
-                server.RemoteEndPoint = (IPEndPoint)socket.RemoteEndPoint;
-                var handshakeRequest = new HandshakeRequest
-                {
-                    UserName = Username,
-                    Host = Host,
-                    ProtocolVersion = (byte)serverEndPoint.MinecraftVersion
-                };
-                await server.SendPacketAsync(handshakeRequest);
-
-                Packet tp = await server.ReceivePacketAsync();
-
-                if (tp is DisconnectPacket)
-                {
-                    throw new OperationCanceledException((tp as DisconnectPacket).Reason);
-                }
-
-                var encryptionKeyRequest = tp as EncryptionKeyRequest;
-
-                server.ConnectionKey = ProtocolSecurity.GenerateAes128Key();
-                byte[] key = Pdelvo.Minecraft.Network.ProtocolSecurity.RsaEncrypt(server.ConnectionKey, encryptionKeyRequest.PublicKey.ToArray(), false);
-                byte[] verifyToken = Pdelvo.Minecraft.Network.ProtocolSecurity.RsaEncrypt(encryptionKeyRequest.VerifyToken.ToArray(), encryptionKeyRequest.PublicKey.ToArray(), false);
-
-                var encryptionKeyResponse = new EncryptionKeyResponse
-                {
-                    SharedKey = key,
-                    VerifyToken = verifyToken
-                };
-                await server.SendPacketAsync(encryptionKeyResponse);
-
-                var p = await server.ReceivePacketAsync();
-
-                server.EnableAes();
-
-                await server.SendPacketAsync(new RespawnRequestPacket());
-
-                return await server.ReceivePacketAsync();
-            }
-            catch (Exception ex)
-            {
-                _quitMessagePosted = true;
-                _logger.Error("Could not connect to remote server", ex);
-                throw;
-            }
-            finally
-            {
-                _serverEndPoint = server;
-            }
-        }
-
-        /// <summary>
-        /// Start waiting for server packets
-        /// </summary>
-        public void StartServerListening()
-        {
-            ServerEndPoint.ConnectionLost += ServerConnectionLost;
-            ServerEndPoint.PacketReceived += ServerPacketReceived;
-            ServerEndPoint.StartListening();
-        }
-
-        /// <summary>
-        /// Start waiting for client packets
-        /// </summary>
-        public void StartClientListening()
-        {
-            ClientEndPoint.ConnectionLost += ClientConnectionLost;
-            ClientEndPoint.PacketReceived += ClientPacketReceived;
-            ClientEndPoint.StartListening();
-        }
-
-        void ClientConnectionLost(object sender, EventArgs e)
-        {
-            OnConnectionLost();
+            OnConnectionLost ();
         }
 
         private void OnConnectionLost()
         {
             if (_connectionClosed) return;
             _connectionClosed = true;
-            ServerEndPoint.Close();
-            ClientEndPoint.Close();
+            ServerEndPoint.Close ();
+            ClientEndPoint.Close ();
             if (!_quitMessagePosted)
             {
                 _logger.Info(Username + " lost connection");
@@ -406,12 +466,12 @@ namespace Pdelvo.Minecraft.Proxy.Library.Connection
             _server.RemoveConnection(this);
         }
 
-        void ServerConnectionLost(object sender, EventArgs e)
+        private void ServerConnectionLost(object sender, EventArgs e)
         {
-            OnConnectionLost();
+            OnConnectionLost ();
         }
 
-        async void ClientPacketReceived(object sender, PacketReceivedEventArgs args)
+        private async void ClientPacketReceived(object sender, PacketReceivedEventArgs args)
         {
             if (ServerEndPoint == null) return;
             string kickMessage = null;
@@ -431,7 +491,7 @@ namespace Pdelvo.Minecraft.Proxy.Library.Connection
                 await KickUserAsync(kickMessage);
         }
 
-        async void ServerPacketReceived(object sender, PacketReceivedEventArgs args)
+        private async void ServerPacketReceived(object sender, PacketReceivedEventArgs args)
         {
             string kickMessage = null;
             try
@@ -450,58 +510,14 @@ namespace Pdelvo.Minecraft.Proxy.Library.Connection
                 await KickUserAsync(kickMessage);
         }
 
-        /// <summary>
-        /// Asyncronously kicking a client
-        /// </summary>
-        /// <param name="message">The kick message</param>
-        /// <returns>A task representing the asynchronous operation</returns>
-        public async Task KickUserAsync(string message)
-        {
-            try
-            {
-                await ClientEndPoint.SendPacketAsync(new DisconnectPacket { Reason = message });
-                if (!_quitMessagePosted &&!_isMotDRequest )
-                {
-                    _logger.Info(Username + " lost connection, message: " + message);
-                    _quitMessagePosted = true;
-                }
-                ClientEndPoint.Close();
-                if (ServerEndPoint != null)
-                {
-                    ServerEndPoint.Close();
-                }
-            }
-            catch (Exception) { }
-            finally
-            {
-                _server.RemoveConnection(this);
-            }
-        }
 
-        /// <summary>
-        /// Get the current server end point
-        /// </summary>
-        public IProxyEndPoint ServerEndPoint
-        {
-            get { return _serverEndPoint; }
-        }
-
-        /// <summary>
-        /// Get the current client end point
-        /// </summary>
-        public IProxyEndPoint ClientEndPoint
-        {
-            get { return _clientEndPoint; }
-        }
-
-
-        void UnregisterServer()
+        private void UnregisterServer()
         {
             if (ServerEndPoint != null)
             {
                 ServerEndPoint.PacketReceived -= ServerPacketReceived;
                 ServerEndPoint.ConnectionLost -= ServerConnectionLost;
-                ServerEndPoint.Close();
+                ServerEndPoint.Close ();
                 _serverEndPoint = null;
             }
         }
