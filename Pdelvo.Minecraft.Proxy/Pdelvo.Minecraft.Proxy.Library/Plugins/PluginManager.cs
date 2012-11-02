@@ -107,7 +107,7 @@ namespace Pdelvo.Minecraft.Proxy.Library.Plugins
 
         private IEnumerable<PluginBase> LoadPlugins()
         {
-            string pluginDirectory = "plugins/";
+            string pluginDirectory = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly ().Location), "plugins/");
             Directory.CreateDirectory(pluginDirectory);
             foreach (string item in Directory.EnumerateFiles(pluginDirectory, "*.dll"))
             {
