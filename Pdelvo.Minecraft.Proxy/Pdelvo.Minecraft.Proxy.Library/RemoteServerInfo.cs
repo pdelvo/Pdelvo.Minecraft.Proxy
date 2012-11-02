@@ -12,8 +12,8 @@ namespace Pdelvo.Minecraft.Proxy.Library
         /// </summary>
         /// <param name="name"> The name of the backend server </param>
         /// <param name="endPoint"> The ip end point of the backend server </param>
-        /// <param name="minecraftVersion"> The minecraft version of the backend server </param>
-        public RemoteServerInfo(string name, IPEndPoint endPoint, int minecraftVersion)
+        /// <param name="minecraftVersion"> The minecraft version of the backend server, null for auto detection </param>
+        public RemoteServerInfo(string name, IPEndPoint endPoint, int? minecraftVersion)
         {
             Name = name;
             EndPoint = endPoint;
@@ -31,8 +31,8 @@ namespace Pdelvo.Minecraft.Proxy.Library
         public IPEndPoint EndPoint { get; set; }
 
         /// <summary>
-        ///   The minecraft version the end point uses
+        ///   The minecraft version the end point uses, null for auto detection
         /// </summary>
-        public int MinecraftVersion { get; set; }
+        public int? MinecraftVersion { get; set; }
     }
 }

@@ -97,6 +97,13 @@ namespace Pdelvo.Minecraft.Proxy.Library.Connection
 
                 if (serverEndPoint.MinecraftVersion == 0)
                     _server.GetServerVersion(this, serverEndPoint);
+                if (serverEndPoint.MinecraftVersion == null)
+                {
+                    var information =await  MinecraftPinger.GetServerInformationAsync(serverEndPoint.EndPoint);
+                    if((serverEndPoint.MinecraftVersion = information.ProtocolVersion) == null)
+                        throw new InvalidOperationException("Could not auto detect server version");
+                    
+                }
 
                 var socket = new Socket(serverEndPoint.EndPoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp)
                                  {
@@ -104,12 +111,10 @@ namespace Pdelvo.Minecraft.Proxy.Library.Connection
                                  };
 
                 await socket.ConnectTaskAsync(serverEndPoint.EndPoint);
-
-
                 server =
                     new ProxyEndPoint(
-                        ServerRemoteInterface.Create(new NetworkStream(socket), serverEndPoint.MinecraftVersion),
-                        serverEndPoint.MinecraftVersion);
+                        ServerRemoteInterface.Create(new NetworkStream(socket), (int)serverEndPoint.MinecraftVersion),
+                        (int)serverEndPoint.MinecraftVersion);
                 server.RemoteEndPoint = (IPEndPoint) socket.RemoteEndPoint;
                 var handshakeRequest = new HandshakeRequest
                                            {
@@ -252,8 +257,8 @@ namespace Pdelvo.Minecraft.Proxy.Library.Connection
 
                     if (listPing.MagicByte == 1)
                     {
-                        string response = ProtocolHelper.BuildMotDString(ProtocolInformation.MaxSupportedClientVersion,
-                                                                         "<multi version>", _server.MotD,
+                        string response = ProtocolHelper.BuildMotDString((byte)_server.PublicMinecraftVersion,
+                                                                         _server.ServerVersionName, _server.MotD,
                                                                          _server.ConnectedUsers, _server.MaxUsers);
                         await KickUserAsync(response);
                     }

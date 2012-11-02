@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Pdelvo.Minecraft.Protocol.Helper;
+using System;
 using System.Configuration;
 
 namespace Pdelvo.Minecraft.Proxy.Library.Configuration
@@ -55,8 +56,28 @@ namespace Pdelvo.Minecraft.Proxy.Library.Configuration
         [ConfigurationProperty("onlineMode", DefaultValue = true, IsRequired = false)]
         public bool OnlineMode
         {
-            get { return (bool) this["onlineMode"]; }
+            get { return (bool)this["onlineMode"]; }
             set { this["onlineMode"] = value; }
+        }
+
+        /// <summary>
+        ///   The protocol version the server sends to the client to display the server list.
+        /// </summary>
+        [ConfigurationProperty("publicServerVersion", DefaultValue = ProtocolInformation.MaxSupportedClientVersion, IsRequired = false)]
+        public int? PublicServerVersion
+        {
+            get { return (int?)this["publicServerVersion"]; }
+            set { this["publicServerVersion"] = value; }
+        }
+
+        /// <summary>
+        ///   The message of the day of the server
+        /// </summary>
+        [ConfigurationProperty("serverVersionName", DefaultValue = "MineProxy.Net", IsRequired = false)]
+        public string ServerVersionName
+        {
+            get { return (string)this["serverVersionName"]; }
+            set { this["serverVersionName"] = value; }
         }
 
         /// <summary>
@@ -301,12 +322,12 @@ namespace Pdelvo.Minecraft.Proxy.Library.Configuration
         }
 
         /// <summary>
-        ///   The minecraft version of the server. 1.3 is currently minecraft version 39
+        ///   The minecraft version of the server. 1.3 is currently minecraft version 39, Null to use auto detection (supported in version 47 and above)
         /// </summary>
-        [ConfigurationProperty("minecraftVersion", DefaultValue = null, IsRequired = true)]
-        public int MinecraftVersion
+        [ConfigurationProperty("minecraftVersion", DefaultValue = null, IsRequired = false)]
+        public int? MinecraftVersion
         {
-            get { return (int) this["minecraftVersion"]; }
+            get { return (int?) this["minecraftVersion"]; }
             set { this["minecraftVersion"] = value; }
         }
     }

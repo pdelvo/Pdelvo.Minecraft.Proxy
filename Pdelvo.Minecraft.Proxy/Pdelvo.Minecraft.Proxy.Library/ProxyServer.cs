@@ -87,6 +87,16 @@ namespace Pdelvo.Minecraft.Proxy.Library
         public string MotD { get; set; }
 
         /// <summary>
+        ///   Minecraft version to display in the server list
+        /// </summary>
+        public int PublicMinecraftVersion { get; set; }
+
+        /// <summary>
+        ///   Minecraft version to display in the server list
+        /// </summary>
+        public string ServerVersionName { get; set; }
+
+        /// <summary>
         ///   Get if the underlying socket is listening for new users.
         /// </summary>
         public bool Listening
@@ -198,6 +208,10 @@ namespace Pdelvo.Minecraft.Proxy.Library
             MaxUsers = settings.MaxPlayers;
             LocalEndPoint = Extensions.ParseEndPoint(settings.LocalEndPoint);
             OnlineMode = settings.OnlineMode;
+
+            PublicMinecraftVersion = settings.PublicServerVersion ?? ProtocolInformation.MaxSupportedClientVersion;
+
+            ServerVersionName = settings.ServerVersionName;
         }
 
         private async void ReceiveClientsAsync()

@@ -55,6 +55,7 @@
     <Compile Include="Connection\IProxyConnection.cs" />
     <Compile Include="Connection\ProxyEndPoint.cs" />
     <Compile Include="IProxyServer.cs" />
+    <Compile Include="MinecraftPinger.cs" />
     <Compile Include="Plugins\Events\CancelEventArgs.cs" />
     <Compile Include="Plugins\Events\CheckAccountEventArgs.cs" />
     <Compile Include="Plugins\Events\CheckIPEventArgs.cs" />
