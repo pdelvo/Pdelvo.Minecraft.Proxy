@@ -287,14 +287,24 @@ namespace Pdelvo.Minecraft.Proxy.Library.Configuration
         [ConfigurationProperty("name", IsRequired = true)]
         public string Name
         {
-            get { return (string) this["name"]; }
+            get { return (string)this["name"]; }
             set { this["name"] = value; }
+        }
+
+        /// <summary>
+        ///   The name of the server
+        /// </summary>
+        [ConfigurationProperty("kickMessage", IsRequired = false)]
+        public string KickMessage
+        {
+            get { return (string)this["kickMessage"]; }
+            set { this["kickMessage"] = value; }
         }
 
         /// <summary>
         ///   The remote end point of the server
         /// </summary>
-        [ConfigurationProperty("endPoint", IsRequired = true)]
+        [ConfigurationProperty("endPoint", IsRequired = false)]
         public string EndPoint
         {
             get { return (string) this["endPoint"]; }

@@ -191,7 +191,10 @@ namespace Pdelvo.Minecraft.Proxy.Library
                                           ? null
                                           : new RemoteServerInfo(possibleResult.Name,
                                                                  Extensions.ParseEndPoint(possibleResult.EndPoint),
-                                                                 possibleResult.MinecraftVersion);
+                                                                 possibleResult.MinecraftVersion)
+                                                {
+                                                    KickMessage = possibleResult.KickMessage
+                                                };
 
             var args = new PluginResultEventArgs<RemoteServerInfo>(result, proxyConnection);
             PluginManager.TriggerPlugin.OnPlayerServerSelection(args);

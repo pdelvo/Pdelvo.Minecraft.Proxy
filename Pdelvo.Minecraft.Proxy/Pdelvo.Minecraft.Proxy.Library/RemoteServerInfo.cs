@@ -34,5 +34,10 @@ namespace Pdelvo.Minecraft.Proxy.Library
         ///   The minecraft version the end point uses, null for auto detection
         /// </summary>
         public int? MinecraftVersion { get; set; }
+
+        /// <summary>
+        ///   If not null the user get kicked
+        /// </summary>
+        public string KickMessage { get; set; }
     }
 }
