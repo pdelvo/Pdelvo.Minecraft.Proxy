@@ -21,80 +21,30 @@ namespace Pdelvo.Minecraft.Proxy.Library.Configuration
         }
 
         /// <summary>
-        ///   The message of the day of the server
+        ///   The list of the backend servers
         /// </summary>
-        [ConfigurationProperty("motd", DefaultValue = "Proxy Server", IsRequired = false)]
-        public string Motd
+        [ConfigurationProperty("server", IsDefaultCollection = false)]
+        public ConfigurationCollection<ServerElement> Server
         {
-            get { return (string) this["motd"]; }
-            set { this["motd"] = value; }
-        }
-
-        /// <summary>
-        ///   The local end point the proxy server should bind to
-        /// </summary>
-        [ConfigurationProperty("localEndPoint", DefaultValue = "0.0.0.0:25565", IsRequired = false)]
-        public string LocalEndPoint
-        {
-            get { return (string) this["localEndPoint"]; }
-            set { this["localEndPoint"] = value; }
-        }
-
-        /// <summary>
-        ///   the maximum users the proxy server should allow to join
-        /// </summary>
-        [ConfigurationProperty("maxPlayers", DefaultValue = "100", IsRequired = false)]
-        public int MaxPlayers
-        {
-            get { return (int) this["maxPlayers"]; }
-            set { this["maxPlayers"] = value; }
-        }
-
-        /// <summary>
-        ///   true if the server should use the online mode, otherwise false
-        /// </summary>
-        [ConfigurationProperty("onlineMode", DefaultValue = true, IsRequired = false)]
-        public bool OnlineMode
-        {
-            get { return (bool)this["onlineMode"]; }
-            set { this["onlineMode"] = value; }
-        }
-
-        /// <summary>
-        ///   The protocol version the server sends to the client to display the server list.
-        /// </summary>
-        [ConfigurationProperty("publicServerVersion", DefaultValue = ProtocolInformation.MaxSupportedClientVersion, IsRequired = false)]
-        public int? PublicServerVersion
-        {
-            get { return (int?)this["publicServerVersion"]; }
-            set { this["publicServerVersion"] = value; }
-        }
-
-        /// <summary>
-        ///   The message of the day of the server
-        /// </summary>
-        [ConfigurationProperty("serverVersionName", DefaultValue = "MineProxy.Net", IsRequired = false)]
-        public string ServerVersionName
-        {
-            get { return (string)this["serverVersionName"]; }
-            set { this["serverVersionName"] = value; }
+            get { return (ConfigurationCollection<ServerElement>) this["server"]; }
+            set { this["server"] = value; }
         }
 
         /// <summary>
         ///   The list of the backend servers
         /// </summary>
-        [ConfigurationProperty("server", IsDefaultCollection = false)]
-        public ServerCollection Server
+        [ConfigurationProperty("endPoints", IsDefaultCollection = false)]
+        public ConfigurationCollection<EndPointElement> EndPoints
         {
-            get { return (ServerCollection) this["server"]; }
-            set { this["server"] = value; }
+            get { return (ConfigurationCollection<EndPointElement>)this["endPoints"]; }
+            set { this["endPoints"] = value; }
         }
     }
 
     /// <summary>
     ///   The collection of minecraft backend servers
     /// </summary>
-    public class ServerCollection : ConfigurationElementCollection
+    public class ConfigurationCollection<T> : ConfigurationElementCollection where T : NamedConfigurationElement, new()
     {
         /// <summary>
         ///   The type of the collection, always AddRemoveClearMap
@@ -150,9 +100,9 @@ namespace Pdelvo.Minecraft.Proxy.Library.Configuration
         /// </summary>
         /// <param name="index"> The position of the ServerElement in this collection </param>
         /// <returns> The ServerElement at index </returns>
-        public ServerElement this[int index]
+        public T this[int index]
         {
-            get { return (ServerElement) BaseGet(index); }
+            get { return (T) BaseGet(index); }
             set
             {
                 if (BaseGet(index) != null)
@@ -168,9 +118,9 @@ namespace Pdelvo.Minecraft.Proxy.Library.Configuration
         /// </summary>
         /// <param name="name"> The name of the ServerElement </param>
         /// <returns> The ServerElement with the specific name </returns>
-        public new ServerElement this[string name]
+        public new T this[string name]
         {
-            get { return (ServerElement) BaseGet(name); }
+            get { return (T) BaseGet(name); }
         }
 
         /// <summary>
@@ -179,7 +129,7 @@ namespace Pdelvo.Minecraft.Proxy.Library.Configuration
         /// <returns> A new instance of the ServerElement class </returns>
         protected override ConfigurationElement CreateNewElement()
         {
-            return new ServerElement ();
+            return new T ();
         }
 
 
@@ -192,7 +142,7 @@ namespace Pdelvo.Minecraft.Proxy.Library.Configuration
             ConfigurationElement CreateNewElement(
             string elementName)
         {
-            return new ServerElement {Name = elementName};
+            return new T {Name = elementName};
         }
 
         /// <summary>
@@ -200,7 +150,7 @@ namespace Pdelvo.Minecraft.Proxy.Library.Configuration
         /// </summary>
         /// <param name="element"> The element whish should be looked up </param>
         /// <returns> The index of the element </returns>
-        public int IndexOf(ServerElement element)
+        public int IndexOf(T element)
         {
             return BaseIndexOf(element);
         }
@@ -209,7 +159,7 @@ namespace Pdelvo.Minecraft.Proxy.Library.Configuration
         ///   Add a new element to the collection. If there is already a element with the same name in the collection it will be overridden
         /// </summary>
         /// <param name="element"> </param>
-        public void Add(ServerElement element)
+        public void Add(T element)
         {
             BaseAdd(element);
 
@@ -232,7 +182,7 @@ namespace Pdelvo.Minecraft.Proxy.Library.Configuration
         ///   Remove a element from the collection
         /// </summary>
         /// <param name="element"> The element which should be removed </param>
-        public void Remove(ServerElement element)
+        public void Remove(T element)
         {
             if (BaseIndexOf(element) >= 0)
                 BaseRemove(element.Name);
@@ -272,17 +222,14 @@ namespace Pdelvo.Minecraft.Proxy.Library.Configuration
         /// <returns> </returns>
         protected override Object GetElementKey(ConfigurationElement element)
         {
-            return ((ServerElement) element).Name;
+            return ((T) element).Name;
         }
     }
 
-    /// <summary>
-    ///   A element in the backend server list
-    /// </summary>
-    public class ServerElement : ConfigurationElement
+    public class NamedConfigurationElement : ConfigurationElement
     {
         /// <summary>
-        ///   The name of the server
+        ///   The name
         /// </summary>
         [ConfigurationProperty("name", IsRequired = true)]
         public string Name
@@ -290,6 +237,13 @@ namespace Pdelvo.Minecraft.Proxy.Library.Configuration
             get { return (string)this["name"]; }
             set { this["name"] = value; }
         }
+    }
+
+    /// <summary>
+    ///   A element in the backend server list
+    /// </summary>
+    public class ServerElement : NamedConfigurationElement
+    {
 
         /// <summary>
         ///   The name of the server
@@ -297,7 +251,7 @@ namespace Pdelvo.Minecraft.Proxy.Library.Configuration
         [ConfigurationProperty("kickMessage", IsRequired = false)]
         public string KickMessage
         {
-            get { return (string)this["kickMessage"]; }
+            get { return (string) this["kickMessage"]; }
             set { this["kickMessage"] = value; }
         }
 
@@ -339,6 +293,84 @@ namespace Pdelvo.Minecraft.Proxy.Library.Configuration
         {
             get { return (int?) this["minecraftVersion"]; }
             set { this["minecraftVersion"] = value; }
+        }
+    }
+
+    /// <summary>
+    ///   A element in the backend server list
+    /// </summary>
+    public class EndPointElement : NamedConfigurationElement
+    {
+
+        /// <summary>
+        ///   The message of the day of the server
+        /// </summary>
+        [ConfigurationProperty("motd", DefaultValue = "Proxy Server", IsRequired = false)]
+        public string Motd
+        {
+            get { return (string) this["motd"]; }
+            set { this["motd"] = value; }
+        }
+
+        /// <summary>
+        ///   The local end point the proxy server should bind to
+        /// </summary>
+        [ConfigurationProperty("localEndPoint", DefaultValue = "0.0.0.0:25565", IsRequired = false)]
+        public string LocalEndPoint
+        {
+            get { return (string) this["localEndPoint"]; }
+            set { this["localEndPoint"] = value; }
+        }
+
+        /// <summary>
+        ///   the maximum users the proxy server should allow to join
+        /// </summary>
+        [ConfigurationProperty("maxPlayers", DefaultValue = "100", IsRequired = false)]
+        public int MaxPlayers
+        {
+            get { return (int) this["maxPlayers"]; }
+            set { this["maxPlayers"] = value; }
+        }
+
+        /// <summary>
+        ///   true if the server should use the online mode, otherwise false
+        /// </summary>
+        [ConfigurationProperty("onlineMode", DefaultValue = true, IsRequired = false)]
+        public bool OnlineMode
+        {
+            get { return (bool) this["onlineMode"]; }
+            set { this["onlineMode"] = value; }
+        }
+
+        /// <summary>
+        ///   The protocol version the server sends to the client to display the server list.
+        /// </summary>
+        [ConfigurationProperty("publicServerVersion", DefaultValue = ProtocolInformation.MaxSupportedClientVersion,
+            IsRequired = false)]
+        public int? PublicServerVersion
+        {
+            get { return (int?) this["publicServerVersion"]; }
+            set { this["publicServerVersion"] = value; }
+        }
+
+        /// <summary>
+        ///   The message of the day of the server
+        /// </summary>
+        [ConfigurationProperty("serverVersionName", DefaultValue = "MineProxy.Net", IsRequired = false)]
+        public string ServerVersionName
+        {
+            get { return (string) this["serverVersionName"]; }
+            set { this["serverVersionName"] = value; }
+        }
+
+        /// <summary>
+        ///   The list of the backend servers
+        /// </summary>
+        [ConfigurationProperty("backendRefs", IsDefaultCollection = false)]
+        public ConfigurationCollection<NamedConfigurationElement> BackEndRefs
+        {
+            get { return (ConfigurationCollection<NamedConfigurationElement>)this["backendRefs"]; }
+            set { this["backEndRefs"] = value; }
         }
     }
 }

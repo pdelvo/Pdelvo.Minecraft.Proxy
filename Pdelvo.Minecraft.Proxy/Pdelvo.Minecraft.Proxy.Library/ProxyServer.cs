@@ -207,14 +207,14 @@ namespace Pdelvo.Minecraft.Proxy.Library
         private void ReadConfig()
         {
             ProxyConfigurationSection settings = ProxyConfigurationSection.Settings;
-            MotD = settings.Motd;
-            MaxUsers = settings.MaxPlayers;
-            LocalEndPoint = Extensions.ParseEndPoint(settings.LocalEndPoint);
-            OnlineMode = settings.OnlineMode;
+            //MotD = settings.Motd;
+            //MaxUsers = settings.MaxPlayers;
+            //LocalEndPoint = Extensions.ParseEndPoint(settings.LocalEndPoint);
+            //OnlineMode = settings.OnlineMode;
 
-            PublicMinecraftVersion = settings.PublicServerVersion ?? ProtocolInformation.MaxSupportedClientVersion;
+            //PublicMinecraftVersion = settings.PublicServerVersion ?? ProtocolInformation.MaxSupportedClientVersion;
 
-            ServerVersionName = settings.ServerVersionName;
+            //ServerVersionName = settings.ServerVersionName;
         }
 
         private async void ReceiveClientsAsync()
