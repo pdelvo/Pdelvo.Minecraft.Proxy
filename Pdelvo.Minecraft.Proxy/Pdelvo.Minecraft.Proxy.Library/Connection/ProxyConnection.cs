@@ -250,6 +250,7 @@ namespace Pdelvo.Minecraft.Proxy.Library.Connection
                     ClientRemoteInterface.Create(new NetworkStream(_networkSocket), 39);
                 _clientEndPoint = new ProxyEndPoint(clientRemoteInterface, clientRemoteInterface.EndPoint.Version);
                 _clientEndPoint.RemoteEndPoint = (IPEndPoint) _networkSocket.RemoteEndPoint;
+                _clientEndPoint.LocalEndPoint = (IPEndPoint) _networkSocket.LocalEndPoint;
 
                 Packet packet = await clientRemoteInterface.ReadPacketAsync ();
 
@@ -261,17 +262,19 @@ namespace Pdelvo.Minecraft.Proxy.Library.Connection
                 {
                     _isMotDRequest = true;
 
+                    var configuration = _server.GetServerConfiguration(_clientEndPoint.LocalEndPoint);
+
                     if (listPing.MagicByte == 1)
                     {
-                        string response = ProtocolHelper.BuildMotDString((byte)_server.PublicMinecraftVersion,
-                                                                         _server.ServerVersionName, _server.MotD,
-                                                                         _server.ConnectedUsers, _server.MaxUsers);
+                        string response = ProtocolHelper.BuildMotDString((byte)configuration.PublicServerVersion,
+                                                                         configuration.ServerVersionName, configuration.Motd,
+                                                                         _server.ConnectedUsers, configuration.MaxPlayers);
                         await KickUserAsync(response);
                     }
                     else
                     {
-                        string response = ProtocolHelper.BuildMotDString(_server.MotD, _server.ConnectedUsers,
-                                                                         _server.MaxUsers);
+                        string response = ProtocolHelper.BuildMotDString(configuration.Motd, _server.ConnectedUsers,
+                                                                         configuration.MaxPlayers);
                         await KickUserAsync(response);
                     }
                     return;
@@ -437,6 +440,11 @@ namespace Pdelvo.Minecraft.Proxy.Library.Connection
                 _logger.Error("Could not get remote server info", ex);
 
                 success = false;
+            }
+            if(info == null)
+            {
+                await KickUserAsync("Could not find any remote server");
+                throw new TaskCanceledException();
             }
             if (success)
             {

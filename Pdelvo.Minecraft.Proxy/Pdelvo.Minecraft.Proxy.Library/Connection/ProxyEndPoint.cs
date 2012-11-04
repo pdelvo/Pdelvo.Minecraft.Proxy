@@ -158,6 +158,11 @@ namespace Pdelvo.Minecraft.Proxy.Library.Connection
         /// </summary>
         public IPEndPoint RemoteEndPoint { get; internal set; }
 
+        /// <summary>
+        ///   Get the local end point of this connection
+        /// </summary>
+        public IPEndPoint LocalEndPoint { get; internal set; }
+
         #endregion
 
         private void RemoteInterface_Aborted(object sender, RemoteInterfaceAbortedEventArgs e)

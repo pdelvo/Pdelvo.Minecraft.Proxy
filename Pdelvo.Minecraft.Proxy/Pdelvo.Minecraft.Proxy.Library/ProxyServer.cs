@@ -14,6 +14,8 @@ using Pdelvo.Minecraft.Proxy.Library.Connection;
 using Pdelvo.Minecraft.Proxy.Library.Plugins;
 using Pdelvo.Minecraft.Proxy.Library.Plugins.Events;
 using log4net;
+using System.Collections.Concurrent;
+using System.Threading;
 
 namespace Pdelvo.Minecraft.Proxy.Library
 {
@@ -28,7 +30,8 @@ namespace Pdelvo.Minecraft.Proxy.Library
         private readonly PluginManager _pluginManager;
         private bool _acceptingNewClients;
         private bool _listening;
-        private Socket _listeningSocket;
+
+        private List<Socket> _listeningSockets = new List<Socket>(); 
 
         /// <summary>
         ///   Creates a new instance of the ProxyServer class.
@@ -59,11 +62,6 @@ namespace Pdelvo.Minecraft.Proxy.Library
         #region IProxyServer Members
 
         /// <summary>
-        ///   Get the local end point of this proxy server where it is listening for new clients.
-        /// </summary>
-        public IPEndPoint LocalEndPoint { get; private set; }
-
-        /// <summary>
         ///   Get the number of connected proxy users.
         /// </summary>
         public int ConnectedUsers
@@ -71,30 +69,7 @@ namespace Pdelvo.Minecraft.Proxy.Library
             get { return _connectedUsers.Count; }
         }
 
-        /// <summary>
-        ///   Get the amount of users who can connect at the same time.
-        /// </summary>
-        public int MaxUsers { get; set; }
-
-        /// <summary>
-        ///   Get or set if the proxy server should verify users.
-        /// </summary>
-        public bool OnlineMode { get; set; }
-
-        /// <summary>
-        ///   Get or set the current message of the day.
-        /// </summary>
-        public string MotD { get; set; }
-
-        /// <summary>
-        ///   Minecraft version to display in the server list
-        /// </summary>
-        public int PublicMinecraftVersion { get; set; }
-
-        /// <summary>
-        ///   Minecraft version to display in the server list
-        /// </summary>
-        public string ServerVersionName { get; set; }
+        public ProxyConfigurationSection Configuration { get; private set; }
 
         /// <summary>
         ///   Get if the underlying socket is listening for new users.
@@ -120,17 +95,27 @@ namespace Pdelvo.Minecraft.Proxy.Library
             RSACryptoServiceProvider = rsa;
 
             _logger.Info("RSA Key pair generated");
+            foreach (EndPointElement endPoint in Configuration.EndPoints)
+            {
+                AddListeningSocket(endPoint);
+            }
+        }
 
+        public void AddListeningSocket(EndPointElement element)
+        {
+            var localEndPoint = Extensions.ParseEndPoint(element.LocalEndPoint);
 
-            _listeningSocket = new Socket(LocalEndPoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+            var listeningSocket = new Socket(localEndPoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
 
-            _listeningSocket.Bind(LocalEndPoint);
+            listeningSocket.Bind(localEndPoint);
 
-            _logger.InfoFormat("Server is listening at {0}.", LocalEndPoint);
+            _logger.InfoFormat("Server is listening at {0}.", listeningSocket);
 
-            _listeningSocket.Listen(10);
+            listeningSocket.Listen(10);
 
-            ReceiveClientsAsync ();
+            _listeningSockets.Add(listeningSocket);
+            Task.Run(() => ReceiveClientsAsync(listeningSocket));
+
         }
 
         /// <summary>
@@ -152,8 +137,18 @@ namespace Pdelvo.Minecraft.Proxy.Library
             _acceptingNewClients = false;
             await Task.WhenAll(_openConnection.Select(a => a.CloseAsync ()));
 
-            _listeningSocket.Close ();
-            _listeningSocket.Dispose ();
+            foreach (var listeningSocket in _listeningSockets)
+            {
+                CloseSocket(listeningSocket);
+            }
+        }
+
+        private void CloseSocket(Socket listeningSocket)
+        {
+            listeningSocket.Close();
+            listeningSocket.Dispose();
+
+            _listeningSockets.Remove(listeningSocket);
         }
 
         /// <summary>
@@ -179,11 +174,12 @@ namespace Pdelvo.Minecraft.Proxy.Library
         /// <returns> A RemoteServerInfo object which contains important information about the new backend server. </returns>
         public RemoteServerInfo GetServerEndPoint(IProxyConnection proxyConnection)
         {
-            ProxyConfigurationSection settings = ProxyConfigurationSection.Settings;
+            ProxyConfigurationSection settings = Configuration;
 
             IOrderedEnumerable<ServerElement> server =
                 settings.Server.OfType<ServerElement> ().Where(
-                    m => m.IsDefault || (!string.IsNullOrEmpty(m.DnsName) && proxyConnection.Host.StartsWith(m.DnsName)))
+                    m =>  GetServerConfiguration(((ProxyEndPoint)proxyConnection.ClientEndPoint).LocalEndPoint).BackEndRefs.Cast<NamedConfigurationElement> ().Any(a=>a.Name == m.Name) &&
+                        (m.IsDefault || (!string.IsNullOrEmpty(m.DnsName) && proxyConnection.Host.StartsWith(m.DnsName))))
                     .OrderBy(m => m.IsDefault);
 
             ServerElement possibleResult = server.FirstOrDefault ();
@@ -206,25 +202,17 @@ namespace Pdelvo.Minecraft.Proxy.Library
 
         private void ReadConfig()
         {
-            ProxyConfigurationSection settings = ProxyConfigurationSection.Settings;
-            //MotD = settings.Motd;
-            //MaxUsers = settings.MaxPlayers;
-            //LocalEndPoint = Extensions.ParseEndPoint(settings.LocalEndPoint);
-            //OnlineMode = settings.OnlineMode;
-
-            //PublicMinecraftVersion = settings.PublicServerVersion ?? ProtocolInformation.MaxSupportedClientVersion;
-
-            //ServerVersionName = settings.ServerVersionName;
+            Configuration = ProxyConfigurationSection.Settings;
         }
 
-        private async void ReceiveClientsAsync()
+        private async void ReceiveClientsAsync(Socket listeningSocket)
         {
             _acceptingNewClients = true;
             while (true)
             {
                 try
                 {
-                    Socket remote = await _listeningSocket.AcceptTaskAsync ();
+                    Socket remote = await listeningSocket.AcceptTaskAsync();
 
                     IPAddress address = ((IPEndPoint) remote.RemoteEndPoint).Address;
                     var args = new CheckIPEventArgs(address, true);
@@ -285,7 +273,7 @@ namespace Pdelvo.Minecraft.Proxy.Library
 
 
             if (args.Result == null)
-                return OnlineMode;
+                return GetServerConfiguration(((ProxyEndPoint)proxyConnection.ClientEndPoint).LocalEndPoint).OnlineMode;
             return (bool) args.Result;
         }
 
@@ -352,6 +340,27 @@ namespace Pdelvo.Minecraft.Proxy.Library
                     //Use default
                 else serverEndPoint.MinecraftVersion = ProtocolInformation.MaxSupportedServerVersion;
             }
+        }
+
+        public EndPointElement GetServerConfiguration(IPEndPoint localEndPoint)
+        {
+            return Configuration.EndPoints.Cast<EndPointElement> ().Single(a => EndPointMatch(localEndPoint, Extensions.ParseEndPoint(a.LocalEndPoint)));
+        }
+
+        private bool EndPointMatch(IPEndPoint localEndPoint, IPEndPoint iPEndPoint)
+        {
+            if(localEndPoint.AddressFamily == iPEndPoint.AddressFamily)
+            {
+                if(localEndPoint.Address.Equals(iPEndPoint.Address) ||
+                    localEndPoint.Address.Equals(IPAddress.Any) ||
+                    iPEndPoint.Address.Equals(IPAddress.Any) ||
+                    localEndPoint.Address.Equals(IPAddress.IPv6Any) ||
+                    iPEndPoint.Address.Equals(IPAddress.IPv6Any))
+                {
+                    return localEndPoint.Port == iPEndPoint.Port;
+                }
+            }
+            return false;
         }
     }
 }

@@ -18,29 +18,9 @@ namespace Pdelvo.Minecraft.Proxy.Library
         PluginManager PluginManager { get; }
 
         /// <summary>
-        ///   Get the current local end point.
-        /// </summary>
-        IPEndPoint LocalEndPoint { get; }
-
-        /// <summary>
         ///   Get the current count of connected users.
         /// </summary>
         int ConnectedUsers { get; }
-
-        /// <summary>
-        ///   True if the server is in online mode, otherwise false.
-        /// </summary>
-        bool OnlineMode { get; }
-
-        /// <summary>
-        ///   Get the maximum number of users which are allowed to connect to the server.
-        /// </summary>
-        int MaxUsers { get; set; }
-
-        /// <summary>
-        ///   Get or set the message of the day.
-        /// </summary>
-        string MotD { get; set; }
 
         /// <summary>
         ///   True if the proxy is currently waiting for new connections, otherwise false.
