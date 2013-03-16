@@ -95,7 +95,7 @@ namespace Pdelvo.Minecraft.Proxy.Library.Connection
                 UnregisterServer ();
                 _serverEndPoint = null;
 
-                if (serverEndPoint.KickMessage != null)
+                if (!string.IsNullOrEmpty(serverEndPoint.KickMessage))
                 {
                     await KickUserAsync(serverEndPoint.KickMessage);
                     throw new OperationCanceledException("User got kicked.");
