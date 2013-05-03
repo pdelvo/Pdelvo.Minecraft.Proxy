@@ -247,7 +247,7 @@ namespace Pdelvo.Minecraft.Proxy.Library.Connection
             try
             {
                 ClientRemoteInterface clientRemoteInterface =
-                    ClientRemoteInterface.Create(new NetworkStream(_networkSocket), 39);
+                    ClientRemoteInterface.Create(new NetworkStream(_networkSocket), 60);
                 _clientEndPoint = new ProxyEndPoint(clientRemoteInterface, clientRemoteInterface.EndPoint.Version);
                 _clientEndPoint.RemoteEndPoint = (IPEndPoint) _networkSocket.RemoteEndPoint;
 
