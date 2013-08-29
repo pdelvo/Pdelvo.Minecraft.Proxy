@@ -46,8 +46,18 @@ namespace Pdelvo.Minecraft.Proxy.Library.Configuration
         [ConfigurationProperty("maxPlayers", DefaultValue = "100", IsRequired = false)]
         public int MaxPlayers
         {
-            get { return (int) this["maxPlayers"]; }
+            get { return (int)this["maxPlayers"]; }
             set { this["maxPlayers"] = value; }
+        }
+
+        /// <summary>
+        ///   The MotD
+        /// </summary>
+        [ConfigurationProperty("motd", DefaultValue = null, IsRequired = false)]
+        public string MessageOfTheDay
+        {
+            get { return (string)this["motd"]; }
+            set { this["motd"] = value; }
         }
 
         /// <summary>

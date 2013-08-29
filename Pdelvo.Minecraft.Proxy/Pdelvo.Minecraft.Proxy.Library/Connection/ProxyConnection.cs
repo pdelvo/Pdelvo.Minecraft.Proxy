@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
@@ -263,15 +264,51 @@ namespace Pdelvo.Minecraft.Proxy.Library.Connection
 
                     if (listPing.MagicByte == 1)
                     {
-                        string response = ProtocolHelper.BuildMotDString((byte)_server.PublicMinecraftVersion,
-                                                                         _server.ServerVersionName, _server.MotD,
-                                                                         _server.ConnectedUsers, _server.MaxUsers);
+                        //Plugin Message begins @ 1.6
+
+                        AdditionalServerListInformation additionalInformation = null;
+
+                        try
+                        {
+                            clientRemoteInterface.EndPoint.Stream.ReadTimeout = 1;
+                        }
+                        catch (InvalidOperationException)
+                        {
+                        }
+
+                        try
+                        {
+                            additionalInformation =
+                                await clientRemoteInterface.ReadAdditionalServerListInformationAsync();
+                        }
+                        catch (TimeoutException timeOut)
+                        {
+                        }
+
+                        additionalInformation = additionalInformation ?? new AdditionalServerListInformation
+                        {
+                            Host = _server.LocalEndPoint.Address.ToString(),
+                            Port = _server.LocalEndPoint.Port,
+                            ProtocolVersion = (byte) _server.PublicMinecraftVersion
+                        };
+                        additionalInformation.ProtocolVersion = ProtocolInformation.MaxSupportedClientVersion <
+                                                                additionalInformation.ProtocolVersion
+                            ? (byte) ProtocolInformation.MaxSupportedClientVersion
+                            : additionalInformation.ProtocolVersion;
+                        additionalInformation.ProtocolVersion = ProtocolInformation.MinSupportedClientVersion >
+                                                                additionalInformation.ProtocolVersion
+                            ? (byte) ProtocolInformation.MinSupportedClientVersion
+                            : additionalInformation.ProtocolVersion;
+
+                        string response = ProtocolHelper.BuildMotDString(additionalInformation.ProtocolVersion,
+                            _server.ServerVersionName, _server.MotD,
+                            _server.ConnectedUsers, _server.MaxUsers);
                         await KickUserAsync(response);
                     }
                     else
                     {
                         string response = ProtocolHelper.BuildMotDString(_server.MotD, _server.ConnectedUsers,
-                                                                         _server.MaxUsers);
+                            _server.MaxUsers);
                         await KickUserAsync(response);
                     }
                     return;
@@ -484,6 +521,7 @@ namespace Pdelvo.Minecraft.Proxy.Library.Connection
 
         private async void ClientPacketReceived(object sender, PacketReceivedEventArgs args)
         {
+            Trace.WriteLine("C->S: " + args.Packet);
             if (ServerEndPoint == null) return;
             string kickMessage = null;
             try
@@ -504,6 +542,8 @@ namespace Pdelvo.Minecraft.Proxy.Library.Connection
 
         private async void ServerPacketReceived(object sender, PacketReceivedEventArgs args)
         {
+            Trace.WriteLine("S->C: " + args.Packet);
+            if (args.Packet is ChatPacket) return;
             string kickMessage = null;
             try
             {
